@@ -34,6 +34,20 @@ size_t itoa(char* buf, size_t cap, int value) {
     strflip(whole, (buf+at)-whole);
     return at;
 }
+size_t sztoa(char* buf, size_t cap, size_t value) {
+    size_t at=0;
+    if(value == 0 && at < cap) {
+        buf[at++] = '0';
+        return at;
+    }
+    while(at < cap && value > 0) {
+        int k = value % 10;
+        value /= 10;
+        buf[at++] = '0'+k;
+    }
+    strflip(buf, at);
+    return at;
+}
 static const char* hex_digits = "0123456789ABCDEF";
 size_t utoha(char* buf, size_t cap, unsigned int value) {
     size_t at=0;
