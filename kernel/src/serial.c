@@ -29,7 +29,7 @@ void write_serial_char(char ch) {
     outb(COM1, ch);
 }
 
-void write_serial(char *str) {
+void write_serial(const char *str) {
     size_t len = strlen(str);
     for (size_t i = 0; i < len; i++)
         write_serial_char(str[i]);
