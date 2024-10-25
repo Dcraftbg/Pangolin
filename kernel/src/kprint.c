@@ -32,7 +32,7 @@ void kprint_va(const char* fmt, va_list args) {
                     write_serial("<Unknown fmt `z");
                     write_serial_char(c);
                     write_serial("`>");
-                    break;
+                    return;
                 }
                 break;
             case 'p':
@@ -42,6 +42,7 @@ void kprint_va(const char* fmt, va_list args) {
                 write_serial("<Unknown fmt `");
                 write_serial_char(c);
                 write_serial("`>");
+                return;
             }
         } break;
         default:
