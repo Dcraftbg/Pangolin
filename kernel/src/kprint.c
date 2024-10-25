@@ -35,6 +35,9 @@ void kprint_va(const char* fmt, va_list args) {
                     break;
                 }
                 break;
+            case 'p':
+                ibuf[uptrtoha_full(ibuf, sizeof(ibuf)-1, va_arg(args, uintptr_t))] = '\0';
+                goto write_ibuf;
             default:
                 write_serial("<Unknown fmt `");
                 write_serial_char(c);
