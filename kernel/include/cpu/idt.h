@@ -16,4 +16,8 @@ typedef struct {
     uint64_t offset;
 } __attribute__((packed)) IDTR;
 
+#define IDT_INTERRUPT_TYPE 0x8E
+#define IDT_TRAP_TYPE  0x8F
+#define IDT_SOFTWARE_TYPE  0xEF
+
 void init_IDT();
