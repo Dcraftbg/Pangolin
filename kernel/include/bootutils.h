@@ -23,4 +23,9 @@ size_t boot_get_memregion_count();
 void   boot_get_memregion_at(BootMemRegion* region, size_t index);
 #define BOOT_HHDM_SIZE (4LL*1024LL*1024LL*1024LL)
 uintptr_t boot_get_hhdm();
+typedef struct {
+    paddr_t   phys;
+    uintptr_t virt;
+} BootAddrPair;
 
+void kernel_bootpair(BootAddrPair* pair);

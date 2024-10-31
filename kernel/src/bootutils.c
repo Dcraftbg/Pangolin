@@ -25,6 +25,11 @@ static volatile struct limine_hhdm_request limine_hhdm_request = {
     .id = LIMINE_HHDM_REQUEST,
     .revision = 0
 };
+static volatile struct limine_kernel_address_request limine_kernel_address_request = {
+    .id = LIMINE_KERNEL_ADDRESS_REQUEST,
+    .revision = 0, 
+};
+
 size_t boot_get_memregion_count() {
     if(limine_memmap_request.response) return limine_memmap_request.response->entry_count;
     return 0;
@@ -37,9 +42,16 @@ static void memregion_from_limine(BootMemRegion* region, struct limine_memmap_en
     region->kind = entry->type;
 }
 void boot_get_memregion_at(BootMemRegion* region, size_t index) {
+    if(!limine_memmap_request.response || limine_memmap_request.response->entry_count <= index) kpanic("(boot:limine) Trying to get memmap entry at %zu. Out of bounds", index);
     memregion_from_limine(region, limine_memmap_request.response->entries[index]);
 }
 uintptr_t boot_get_hhdm() {
     if(!limine_hhdm_request.response) kpanic("(boot:limine) Missing hhdm response");
     return limine_hhdm_request.response->offset;
+}
+
+void kernel_bootpair(BootAddrPair* pair) {
+    if(!limine_kernel_address_request.response) kpanic("(boot:limine) Missing kernel address response");
+    pair->phys = limine_kernel_address_request.response->physical_base;
+    pair->virt = limine_kernel_address_request.response->virtual_base;
 }
