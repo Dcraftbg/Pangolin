@@ -1,6 +1,6 @@
 #pragma once
 #include <mem/plist.h>
-#include <cpu.h>
+#include <gdt.h>
 
 typedef struct {
     PList     plist;

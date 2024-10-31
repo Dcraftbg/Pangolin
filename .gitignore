@@ -1,4 +1,5 @@
 limine/
+*.swp
 bin/
 obj/
 sysroot/
