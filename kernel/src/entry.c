@@ -3,13 +3,13 @@
 #include <memory.h>
 #include <cpu/gdt.h>
 #include <cpu/idt.h>
+#include <cpu/exception.h>
 
 void _start() {
     init_serial();
     init_mem();
     init_GDT();
     init_IDT();
-    write_serial("And we have liftoff!\nTrying to call interrupt...\n");
-    asm volatile("int $0x80");
+    init_exceptions();
     for (;;);
 }
