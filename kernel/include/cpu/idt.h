@@ -20,4 +20,8 @@ typedef struct {
 #define IDT_TRAP_TYPE  0x8F
 #define IDT_SOFTWARE_TYPE  0xEF
 
+void set_IDT_entry(uint32_t vector, void *isr, uint8_t flags, IDTEntry *IDT);
 void init_IDT();
+
+#include "kernel.h"
+#define idt_register(vector, isr, flags) set_IDT_entry(vector, isr, flags, kernel.idt)
