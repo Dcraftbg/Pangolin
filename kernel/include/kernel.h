@@ -1,5 +1,6 @@
 #pragma once
 #include <mem/plist.h>
+#include <mem/page.h>
 #include <cpu/gdt.h>
 #include <cpu/idt.h>
 
@@ -16,6 +17,7 @@ typedef struct {
     // Its not necessary
     IDTR      idtr;
     IDTEntry  idt[256] __attribute__((aligned(4096)));
+    page_t pml4;
 } Kernel;
 
 extern Kernel kernel;

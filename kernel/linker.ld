@@ -21,19 +21,23 @@ SECTIONS
     } :requests
 
     . = ALIGN(CONSTANT(MAXPAGESIZE));
-
+    section_text_begin = .;
     .text : {
         *(.text .text.*)
     } :text
+    section_text_end = .;
 
     . = ALIGN(CONSTANT(MAXPAGESIZE));
 
+    section_const_data_begin = .;
     .rodata : {
         *(.rodata .rodata.*)
     } :rodata
+    section_const_data_end = .;
 
     . = ALIGN(CONSTANT(MAXPAGESIZE));
 
+    section_mut_data_begin = .;
     .data : {
         *(.data .data.*)
     } :data
@@ -42,6 +46,7 @@ SECTIONS
         *(.bss .bss.*)
         *(COMMON)
     } :data
+    section_mut_data_end = .;
 
     /DISCARD/ : {
         *(.eh_frame*)
