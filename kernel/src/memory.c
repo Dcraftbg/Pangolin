@@ -43,7 +43,7 @@ void init_mem() {
                 void* region_virt = (void*)(region.address + kernel.hhdm);
                 PListNode* node = region_virt;
                 list_init(&node->list);
-                node->pages = pages_available;
+                node->pages = pages_available-1;
                 list_append(&node->list, &kernel.plist.list);
             }
             else kprint("Available but ignored...\n");
