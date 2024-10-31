@@ -1,4 +1,4 @@
-#include <gdt.h>
+#include <cpu/gdt.h>
 #include <memory.h>
 #include <kernel.h>
 

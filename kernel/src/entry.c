@@ -1,8 +1,8 @@
 #include <serial.h>
 #include <kprint.h>
 #include <memory.h>
-#include <gdt.h>
-#include <idt.h>
+#include <cpu/gdt.h>
+#include <cpu/idt.h>
 
 void _start() {
     init_serial();

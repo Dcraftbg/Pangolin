@@ -1,4 +1,4 @@
-#include <idt.h>
+#include <cpu/idt.h>
 #include <kernel.h>
 #include <kprint.h>
 

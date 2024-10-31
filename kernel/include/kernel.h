@@ -1,7 +1,7 @@
 #pragma once
 #include <mem/plist.h>
-#include <gdt.h>
-#include <idt.h>
+#include <cpu/gdt.h>
+#include <cpu/idt.h>
 
 typedef struct {
     PList     plist;
