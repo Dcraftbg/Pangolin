@@ -2,7 +2,7 @@
 #include <memory.h>
 #include <kernel.h>
 
-uint64_t create_gdt_entry(uint64_t base, uint64_t limit, uint64_t access, uint64_t flags) {
+static uint64_t create_gdt_entry(uint64_t base, uint64_t limit, uint64_t access, uint64_t flags) {
     uint64_t base1  = base & 0xFFFF;
     uint64_t base2  = (base >> 16) & 0xFF;
     uint64_t base3  = (base >> 24) & 0xFF;
@@ -19,7 +19,7 @@ uint64_t create_gdt_entry(uint64_t base, uint64_t limit, uint64_t access, uint64
     return entry;
 }
 
-void create_system_segment_descriptor(uint64_t *GDT, uint8_t idx, uint64_t base, uint64_t limit, uint64_t access, uint64_t flags) {
+static void create_system_segment_descriptor(uint64_t *GDT, uint8_t idx, uint64_t base, uint64_t limit, uint64_t access, uint64_t flags) {
     uint64_t limit1 = limit & 0xFFFF;
     uint64_t  limit2 = (limit >> 16) & 0b1111;
     uint64_t base1  = base & 0xFFFF;
