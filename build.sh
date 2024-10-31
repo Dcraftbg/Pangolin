@@ -35,4 +35,4 @@ xorriso -as mkisofs -b boot/limine/limine-bios-cd.bin \
 echo "Installing bootloader"
 ./limine/limine bios-install pangolin.iso
 
-qemu-system-x86_64 pangolin.iso -serial stdio
+qemu-system-x86_64 pangolin.iso -serial stdio --no-reboot --no-shutdown
