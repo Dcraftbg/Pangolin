@@ -35,8 +35,6 @@ override KCFLAGS += \
 	-Wno-unused-function\
     -std=gnu11 \
     -ffreestanding \
-    -fno-stack-protector \
-    -fno-stack-check \
     -fPIE \
     -m64 \
     -march=x86-64 \
