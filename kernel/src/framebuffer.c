@@ -43,7 +43,7 @@ void newline() {
     kernel.char_y += 16;
 }
 
-void write_char(char ch) {
+void write_framebuffer_char(char ch) {
     if (kernel.char_y >= kernel.framebuffer.height) {
         kernel.char_x = 0;
         kernel.char_y = 0;
@@ -52,19 +52,19 @@ void write_char(char ch) {
         newline();
         return;
     }
-    draw_char(ch, kernel.char_x, kernel.char_y, 0xFFFFFF);
+    draw_char(ch, kernel.char_x, kernel.char_y, 0xEDEADE);
     kernel.char_x += 8;
     if (kernel.char_x >= kernel.framebuffer.width) newline();
 }
 
-void write_text(char *msg) {
+void write_framebuffer_text(const char *msg) {
     while (*msg) {
-        write_char(*msg);
+        write_framebuffer_char(*msg);
         msg++;
     }
 }
 
 void init_framebuffer() {
     kernel.framebuffer = boot_get_framebuffer();
-    write_text("Framebuffer initialised.\n");
+    write_framebuffer_text("Framebuffer initialised.\n");
 }

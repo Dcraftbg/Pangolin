@@ -33,7 +33,6 @@ void init_mem() {
     BootMemRegion region;
     for(size_t i = 0; i < boot_get_memregion_count(); ++i) {
         boot_get_memregion_at(&region, i);
-        kprint("hi!\n");
         kprint("%zu> %p (%s) %zu pages\n", i, (void*)region.address, boot_memregion_kind_str(region.kind), region.size/PAGE_SIZE);
         if(region.kind == BOOT_MEMREGION_USABLE) {
             if(region.address < BOOT_HHDM_SIZE) {

@@ -1,6 +1,18 @@
 #include <kprint.h>
 #include <serial.h>
 #include <string.h>
+#include <framebuffer.h>
+
+void write_char(char ch) {
+    write_serial_char(ch);
+    write_framebuffer_char(ch);
+}
+
+void write_text(const char *txt) {
+    write_serial(txt);
+    write_framebuffer_text(txt);
+}
+
 void kprint_va(const char* fmt, va_list args) {
      char c;
      char ibuf[20];
@@ -9,13 +21,13 @@ void kprint_va(const char* fmt, va_list args) {
         case '%': {
             switch(c=*fmt++) {
             case '%':
-                write_serial_char('%');
+                write_char('%');
                 break;
             case '\0':
-                write_serial_char('%');
+                write_char('%');
                 return; 
             case 's':
-                write_serial(va_arg(args, const char*));
+                write_text(va_arg(args, const char*));
                 break;
             case 'd':
             case 'i':
@@ -29,9 +41,9 @@ void kprint_va(const char* fmt, va_list args) {
                     ibuf[sztoa(ibuf, sizeof(ibuf)-1, va_arg(args, size_t))] = '\0';
                     goto write_ibuf;
                 default:
-                    write_serial("<Unknown fmt `z");
-                    write_serial_char(c);
-                    write_serial("`>");
+                    write_text("<Unknown fmt `z");
+                    write_char(c);
+                    write_text("`>");
                     return;
                 }
                 break;
@@ -39,18 +51,18 @@ void kprint_va(const char* fmt, va_list args) {
                 ibuf[uptrtoha_full(ibuf, sizeof(ibuf)-1, va_arg(args, uintptr_t))] = '\0';
                 goto write_ibuf;
             default:
-                write_serial("<Unknown fmt `");
-                write_serial_char(c);
-                write_serial("`>");
+                write_text("<Unknown fmt `");
+                write_char(c);
+                write_text("`>");
                 return;
             }
         } break;
         default:
-            write_serial_char(c);
+            write_char(c);
             break;
         }
         continue;
 write_ibuf:
-        write_serial(ibuf);
+        write_text(ibuf);
      }
 }

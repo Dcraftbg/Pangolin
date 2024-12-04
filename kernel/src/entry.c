@@ -16,7 +16,7 @@ void _start() {
     init_exceptions();
     init_paging();
     kernel_switch_vtable();
-    kprint("Hey. We switched!\n");
+    kprint("Switched page tree.\n");
     asm volatile("cli");
     for (;;);
 }
