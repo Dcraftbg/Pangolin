@@ -31,9 +31,9 @@ typedef uint64_t pageflags_t;
 // NOTE: Dirty
 #define KERNEL_PFLAG_ACCESSED      0b100000
 
-#define KERNEL_PFLAGS_MASK 0b1000000000000000000000000000000000000000000000000000111111111111LL
+#define KERNEL_PFLAGS_MASK 0x8000000000000FFFLL
 // Technically incorrect but idrk
-#define KERNEL_PADDR_MASK  0b0111111111111111111111111111111111111111111111111111000000000000LL 
+#define KERNEL_PADDR_MASK  0x7FFFFFFFFFFFF000LL
 
 bool page_mmap(page_t pml4_addr, uintptr_t phys, uintptr_t virt, size_t pages_count, pageflags_t flags);
 bool page_alloc(page_t pml4_addr, uintptr_t virt, size_t pages_count, pageflags_t flags);
