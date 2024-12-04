@@ -12,6 +12,15 @@ enum {
     BOOT_MEMREGION_FRAMEBUFFER,
     BOOT_MEMREGION_TYPE_COUNT
 };
+
+typedef struct {
+    void *addr;
+    uint64_t width;
+    uint64_t height;
+    uint64_t pitch;
+    uint64_t bytes_per_pix;
+} Framebuffer;
+
 const char* boot_memregion_kind_str(uint32_t kind);
 typedef struct {
     uint32_t kind;
@@ -29,3 +38,4 @@ typedef struct {
 } BootAddrPair;
 
 void kernel_bootpair(BootAddrPair* pair);
+Framebuffer boot_get_framebuffer();

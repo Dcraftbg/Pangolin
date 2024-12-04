@@ -9,6 +9,7 @@ fi
 make -C limine
 
 echo "Building kernel..."
+make -C kernel clean
 make -C kernel
 
 echo "Setting up disk image..."
@@ -36,3 +37,4 @@ echo "Installing bootloader"
 ./limine/limine bios-install pangolin.iso
 
 qemu-system-x86_64 pangolin.iso -serial stdio --no-reboot --no-shutdown
+

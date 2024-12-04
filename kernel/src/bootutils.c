@@ -1,4 +1,5 @@
 #include <bootutils.h>
+#include <limine.h>
 #include <kpanic.h>
 
 static const char* boot_memregion_kind_map[BOOT_MEMREGION_TYPE_COUNT] = {
@@ -16,7 +17,6 @@ const char* boot_memregion_kind_str(uint32_t kind) {
     return boot_memregion_kind_map[kind];
 }
 
-#include <limine.h>
 static volatile struct limine_memmap_request limine_memmap_request = {
     .id = LIMINE_MEMMAP_REQUEST,
     .revision = 0 
@@ -27,6 +27,10 @@ static volatile struct limine_hhdm_request limine_hhdm_request = {
 };
 static volatile struct limine_kernel_address_request limine_kernel_address_request = {
     .id = LIMINE_KERNEL_ADDRESS_REQUEST,
+    .revision = 0, 
+};
+static volatile struct limine_framebuffer_request limine_framebuffer_request = {
+    .id = LIMINE_FRAMEBUFFER_REQUEST,
     .revision = 0, 
 };
 
@@ -48,6 +52,16 @@ void boot_get_memregion_at(BootMemRegion* region, size_t index) {
 uintptr_t boot_get_hhdm() {
     if(!limine_hhdm_request.response) kpanic("(boot:limine) Missing hhdm response");
     return limine_hhdm_request.response->offset;
+}
+Framebuffer boot_get_framebuffer() {
+    if(!limine_framebuffer_request.response) kpanic("(boot:limine) Missing framebuffer response");
+    return (Framebuffer) {
+        .addr          = (*limine_framebuffer_request.response->framebuffers)->address,
+        .width         = (*limine_framebuffer_request.response->framebuffers)->width,
+        .height        = (*limine_framebuffer_request.response->framebuffers)->height,
+        .pitch         = (*limine_framebuffer_request.response->framebuffers)->pitch,
+        .bytes_per_pix = (*limine_framebuffer_request.response->framebuffers)->bpp / 8,
+    };
 }
 
 void kernel_bootpair(BootAddrPair* pair) {

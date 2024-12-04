@@ -35,6 +35,8 @@ override KCFLAGS += \
 	-Wno-unused-function\
     -std=gnu11 \
     -ffreestanding \
+	-fno-stack-protector\
+	-fno-stack-check\
     -fPIE \
     -m64 \
     -march=x86-64 \
@@ -104,4 +106,4 @@ all: ../bin/$(OUTPUT)
 # Remove object files and the final executable.
 .PHONY: clean
 clean:
-	rm -rf ../obj
+	rm -rf ../obj ../bin
