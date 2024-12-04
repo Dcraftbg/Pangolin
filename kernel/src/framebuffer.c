@@ -1,3 +1,4 @@
+#include <font.h>
 #include <stdint.h>
 #include <framebuffer.h>
 #include <kprint.h>
@@ -25,7 +26,19 @@ void fill_square(uint64_t x, uint64_t y, uint64_t width, uint64_t height, uint32
 
 }
 
+void draw_char(char ch, uint64_t x_coord, uint64_t y_coord, uint32_t colour) {
+    uint64_t first_byte_idx = ch * 16;
+    for (size_t y = 0; y < 16; y++) {
+        for (size_t x = 0; x < 8; x++) {
+            if ((font[first_byte_idx + y] >> (7 - x)) & 1)
+                draw_pixel(x_coord + x, y_coord + y, colour);
+            else
+                draw_pixel(x_coord + x, y_coord + y, 0);
+        }
+    }
+}
+
 void init_framebuffer() {
     kernel.framebuffer = boot_get_framebuffer();
-    fill_square(0, 0, kernel.framebuffer.width, kernel.framebuffer.height, 0xFFFFFF);
+    draw_char('a', 5, 5, 0xFFFFFF);
 }
