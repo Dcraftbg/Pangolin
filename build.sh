@@ -9,7 +9,6 @@ fi
 make -C limine
 
 echo "Building kernel..."
-make -C kernel clean
 make -C kernel
 
 echo "Setting up disk image..."

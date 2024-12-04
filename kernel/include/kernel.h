@@ -22,6 +22,7 @@ typedef struct {
     page_t pml4;
     uint64_t char_x;
     uint64_t char_y;
+    struct list *slab_caches;
 } Kernel;
 
 extern Kernel kernel;
