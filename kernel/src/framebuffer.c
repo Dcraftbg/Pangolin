@@ -38,7 +38,33 @@ void draw_char(char ch, uint64_t x_coord, uint64_t y_coord, uint32_t colour) {
     }
 }
 
+void newline() {
+    kernel.char_x = 0;
+    kernel.char_y += 16;
+}
+
+void write_char(char ch) {
+    if (kernel.char_y >= kernel.framebuffer.height) {
+        kernel.char_x = 0;
+        kernel.char_y = 0;
+    }
+    if (ch == '\n') {
+        newline();
+        return;
+    }
+    draw_char(ch, kernel.char_x, kernel.char_y, 0xFFFFFF);
+    kernel.char_x += 8;
+    if (kernel.char_x >= kernel.framebuffer.width) newline();
+}
+
+void write_text(char *msg) {
+    while (*msg) {
+        write_char(*msg);
+        msg++;
+    }
+}
+
 void init_framebuffer() {
     kernel.framebuffer = boot_get_framebuffer();
-    draw_char('a', 5, 5, 0xFFFFFF);
+    write_text("Framebuffer initialised.\n");
 }

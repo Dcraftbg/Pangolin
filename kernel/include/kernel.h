@@ -20,6 +20,8 @@ typedef struct {
     IDTEntry    idt[256] __attribute__((aligned(4096)));
     Framebuffer framebuffer;
     page_t pml4;
+    uint64_t char_x;
+    uint64_t char_y;
 } Kernel;
 
 extern Kernel kernel;

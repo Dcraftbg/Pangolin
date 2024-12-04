@@ -9,6 +9,7 @@
 
 void _start() {
     init_serial();
+    init_framebuffer();
     init_mem();
     init_GDT();
     init_IDT();
@@ -16,7 +17,6 @@ void _start() {
     init_paging();
     kernel_switch_vtable();
     kprint("Hey. We switched!\n");
-    init_framebuffer();
     asm volatile("cli");
     for (;;);
 }
