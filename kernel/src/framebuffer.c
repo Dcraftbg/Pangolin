@@ -41,9 +41,29 @@ void draw_char(char ch, uint64_t x_coord, uint64_t y_coord, uint32_t colour) {
     }
 }
 
+void scroll_pixels(size_t num_pix) {
+    for (size_t y = 0; y < kernel.framebuffer.height; y++) {
+        for (size_t x = 0; x < kernel.framebuffer.width; x++) {
+            if (y >= (kernel.framebuffer.height - num_pix)) {
+                draw_pixel(x, y, BG_COLOUR);
+                continue;
+            }
+            uint32_t *location = (uint32_t*)(((uint8_t*) kernel.framebuffer.addr) + (y + num_pix) * kernel.framebuffer.pitch);
+            uint32_t above_pixel_value = location[x];
+            draw_pixel(x, y, above_pixel_value);
+        }
+    }
+}
+
+void scroll_line() {
+    kernel.char_y -= 16;
+    scroll_pixels(16);
+}
+
 void newline() {
     kernel.char_x = 0;
     kernel.char_y += 16;
+    if (kernel.char_y >= kernel.framebuffer.height) scroll_line();
 }
 
 void write_framebuffer_char(char ch) {
