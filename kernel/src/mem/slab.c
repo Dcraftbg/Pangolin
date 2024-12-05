@@ -8,7 +8,7 @@
 
 /* A function to initialise a new slab cache.
  * TODO: Calculate obj_per_slab instead of taking it as an argument. */
-void init_slab_cache(size_t obj_size, size_t num_obj, size_t obj_per_slab, char *name) {
+Cache *init_slab_cache(size_t obj_size, size_t num_obj, size_t obj_per_slab, char *name) {
     char name_buf[20];
     strcpy(name_buf, name);
     if (strlen(name) > 19) {
@@ -43,8 +43,8 @@ void init_slab_cache(size_t obj_size, size_t num_obj, size_t obj_per_slab, char 
     }
     
     struct list *slab_lists[] = {&new_cache->free_nodes,
-                                &new_cache->partial_nodes,
-                                &new_cache->full_nodes};
+                                 &new_cache->partial_nodes,
+                                 &new_cache->full_nodes};
     for (size_t slab_list = 0; slab_list < 3; slab_list++) list_init(slab_lists[slab_list]);
     
     size_t slab_size = sizeof(Slab) + // slab size itself
@@ -58,10 +58,11 @@ void init_slab_cache(size_t obj_size, size_t num_obj, size_t obj_per_slab, char 
         *new_slab = (Slab) {
             .cache = new_cache,
             .free_stack_head = 0,
+            .num_free = obj_per_slab,
             .data = data_addr,
         };
         list_insert(&new_slab->list, &new_cache->free_nodes);
-       
+        
         // this loop is a little messy, sorry. 
         size_t data_element = 0;
         for (size_t stack_element = (uint64_t) new_slab + sizeof(Slab); stack_element < (uint64_t) data_addr; stack_element += 8) {
@@ -70,5 +71,37 @@ void init_slab_cache(size_t obj_size, size_t num_obj, size_t obj_per_slab, char 
         }
     }
     
-    kprint("Cache initiated.");
+    return new_cache;
 }
+
+void *slab_alloc(Cache* cache) {
+    Slab *slab = NULL;
+    if (list_len(&cache->partial_nodes)) {
+        slab = (Slab*) list_next(&cache->partial_nodes);
+    } else if (list_len(&cache->free_nodes)) {
+        slab = (Slab*) list_next(&cache->free_nodes);
+    } else
+        return NULL;
+    uint64_t *free_stack = (uint64_t*) ((uint64_t) slab + sizeof(Slab));
+    void *free_stack_element = (void*) free_stack[slab->free_stack_head];
+    slab->free_stack_head++;
+    slab->num_free--;
+    if (!slab->num_free) {
+        list_remove(&slab->list);
+        list_insert(&slab->list, &cache->full_nodes);
+    } else if (slab->num_free < cache->obj_per_slab && (struct list*) slab != &cache->partial_nodes) {
+        list_remove(&slab->list);
+        list_insert(&slab->list, &cache->partial_nodes);
+    }
+    return free_stack_element;
+}
+
+
+
+
+
+
+
+
+
+

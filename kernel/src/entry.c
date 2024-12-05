@@ -18,7 +18,6 @@ void _start() {
     init_paging();
     kernel_switch_vtable();
     kprint("Switched page tree.\n");
-    init_slab_cache(4, 20, 5, "Test Cache\0");
     asm volatile("cli");
     for (;;);
 }
