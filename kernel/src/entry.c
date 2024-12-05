@@ -18,6 +18,11 @@ void _start() {
     init_paging();
     kernel_switch_vtable();
     kprint("Switched page tree.\n");
+    Cache *cache = init_slab_cache(4, "Test Cache\0");
+    for (size_t i = 0; i < 20; i++) {
+        void *addr = slab_alloc(cache);
+        kprint("Addr = %p\n", addr);
+    }
     asm volatile("cli");
     for (;;);
 }

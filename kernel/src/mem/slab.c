@@ -8,7 +8,7 @@
 
 /* A function to initialise a new slab cache.
  * TODO: Calculate obj_per_slab instead of taking it as an argument. */
-Cache *init_slab_cache(size_t obj_size, size_t num_obj, size_t obj_per_slab, char *name) {
+Cache *init_slab_cache(size_t obj_size, char *name) {
     char name_buf[20];
     strcpy(name_buf, name);
     if (strlen(name) > 19) {
@@ -17,11 +17,14 @@ Cache *init_slab_cache(size_t obj_size, size_t num_obj, size_t obj_per_slab, cha
         name_buf[19] = 0;
     }
     
+    size_t obj_per_slab = (page_align_up(obj_size + sizeof(Slab) + sizeof(uint64_t)) - sizeof(Slab)) / (obj_size + sizeof(uint64_t));
+    size_t num_obj = obj_per_slab;
+
     kprint("Initialising new slab cache: \"%s\" of object size %zu with %zu objects, with %zu objects per slab.\n",
             name_buf, obj_size, num_obj, obj_per_slab);
     
     size_t stack_size = num_obj * sizeof(uint64_t);
-    size_t num_slabs = num_obj / obj_per_slab;
+    size_t num_slabs = 1;
     size_t cache_size = sizeof(Cache) + // size added from the cache
                         sizeof(Slab) * num_slabs + // size added from the slabs metadata
                         obj_size * num_obj + // size added from the actual data

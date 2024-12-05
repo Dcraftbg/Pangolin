@@ -24,5 +24,5 @@ struct Slab {
     // Free stack comes immediately after, then the data
 };
 
-Cache *init_slab_cache(size_t obj_size, size_t num_obj, size_t obj_per_slab, char *name);
+Cache *init_slab_cache(size_t obj_size, char *name);
 void *slab_alloc(Cache* cache);
