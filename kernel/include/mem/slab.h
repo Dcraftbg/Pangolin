@@ -21,8 +21,10 @@ struct Slab {
     size_t free_stack_head;
     size_t num_free;
     void   *data;
+    void   *data_end;
     // Free stack comes immediately after, then the data
 };
 
 Cache *init_slab_cache(size_t obj_size, char *name);
-void *slab_alloc(Cache* cache);
+void  *slab_alloc(Cache *cache);
+int    slab_free(Cache *cache, void *addr);

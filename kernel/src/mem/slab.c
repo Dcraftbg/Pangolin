@@ -42,12 +42,13 @@ Cache *init_slab_cache(size_t obj_size, char *name) {
 void slab_grow(Cache *cache) {
     Slab *new_slab = (Slab*) ((uint64_t) kernel_alloc_phys_pages(bytes_to_pages(page_align_up(sizeof(Slab) + cache->obj_size * cache->obj_per_slab))) + kernel.hhdm);
     uint64_t stack_size = cache->obj_per_slab * sizeof(uint64_t);
-    void *data_addr = (void*) ((uint64_t) new_slab + stack_size);
+    void *data_addr = (void*) ((uint64_t) new_slab + sizeof(Slab) + stack_size);
     *new_slab = (Slab) {
         .cache = cache,
-        .free_stack_head = 0,
+        .free_stack_head = cache->obj_per_slab - 1,
         .num_free = cache->obj_per_slab,
         .data = data_addr,
+        .data_end = (void*) ((uint64_t) data_addr + (cache->obj_per_slab * cache->obj_size)),
     };
     list_insert(&new_slab->list, &cache->free_nodes);
     // this loop is a little messy, sorry. 
@@ -70,7 +71,7 @@ void *slab_alloc(Cache *cache) {
     }
     uint64_t *free_stack = (uint64_t*) ((uint64_t) slab + sizeof(Slab));
     void *free_stack_element = (void*) free_stack[slab->free_stack_head];
-    slab->free_stack_head++;
+    slab->free_stack_head--;
     slab->num_free--;
     if (!slab->num_free) {
         list_remove(&slab->list);
@@ -81,3 +82,68 @@ void *slab_alloc(Cache *cache) {
     }
     return free_stack_element;
 }
+
+Slab *slab_find_addr(Cache *cache, void *ptr) {
+    struct list *iter = NULL;
+    // try finding it in the full list
+    list_foreach(iter, &cache->full_nodes) {
+        if (((Slab*) iter)->data < ptr &&
+            ((Slab*) iter)->data_end > ptr) {
+            return (Slab*) iter;
+        }
+    }
+    // if it's not in the full list, keep looking in the partial list
+    list_foreach(iter, &cache->partial_nodes) {
+        if (((Slab*) iter)->data < ptr &&
+            ((Slab*) iter)->data_end > ptr) {
+            return (Slab*) iter;
+        }
+    }
+    // if it's *still* not found, look in the free list
+    list_foreach(iter, &cache->free_nodes) {
+        if (((Slab*) iter)->data < ptr &&
+            ((Slab*) iter)->data_end > ptr) {
+            return (Slab*) iter;
+        }
+    }
+    // could I just return NULL directly? Yeah but this is to please the compiler warnings xD
+    iter = NULL;
+    return (Slab*) iter;
+}
+
+// returns status code
+int slab_free(Cache *cache, void *ptr) {
+    Slab *slab = slab_find_addr(cache, ptr);
+    if (!slab) {
+        kprint("Couldn't free slab object, pointer is invalid.\n");
+        return -1;
+    }
+    slab->free_stack_head++;
+    uint64_t *free_stack = (uint64_t*) ((uint64_t) slab + sizeof(Slab));
+    free_stack[slab->free_stack_head] = (uint64_t) ptr;
+    return 0;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
