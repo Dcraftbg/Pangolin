@@ -18,7 +18,7 @@ void *memset (void *dest, int x          , size_t n) {
 /* There's probably a better way of doing this, but it's mostly only for short strings anyway so
  * it shouldn't be too slow.
  */
-char *strcpy(char *dest, char *src) {
+char *strcpy(char *dest, const char *src) {
     size_t src_len = strlen(src);
     for (size_t i = 0; i < src_len; i++) {
         dest[i] = src[i];
