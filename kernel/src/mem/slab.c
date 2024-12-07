@@ -17,7 +17,7 @@ Cache *init_slab_cache(size_t obj_size, char *name) {
     
     size_t obj_per_slab = (page_align_up(obj_size + sizeof(Slab) + sizeof(uint64_t)) - sizeof(Slab)) / (obj_size + sizeof(uint64_t));
 
-    Cache *new_cache = (Cache*) (kernel_alloc_phys_pages(bytes_to_pages(page_align_up(sizeof(Cache)))) + kernel.hhdm);
+    Cache *new_cache = (Cache*) (kernel_alloc_pages(bytes_to_pages(page_align_up(sizeof(Cache)))));
     
     *new_cache = (Cache) {
         .obj_size     = obj_size,
