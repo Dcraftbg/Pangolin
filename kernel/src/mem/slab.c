@@ -123,27 +123,3 @@ int slab_free(Cache *cache, void *ptr) {
     free_stack[slab->free_stack_head] = (uint64_t) ptr;
     return 0;
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
