@@ -90,6 +90,7 @@ static status_t tmpfs_put(TmpfsInode* dir, TmpfsDirEntry* new_entry) {
         head = new_block;
     }
     ((TmpfsDirEntry**)head->data)[size] = new_entry;
+    dir->size++;
     return 0;
 }
 static status_t tmpfs_create(Inode* dir, const char* name, size_t namelen) {
