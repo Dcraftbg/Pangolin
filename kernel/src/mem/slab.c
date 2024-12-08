@@ -20,8 +20,9 @@ Cache *init_slab_cache(size_t obj_size, const char *name) {
     Cache *new_cache = (Cache*) (kernel_alloc_pages(bytes_to_pages(page_align_up(sizeof(Cache)))));
     
     *new_cache = (Cache) {
-        .obj_size     = obj_size,
-        .obj_per_slab = obj_per_slab,
+        .obj_size        = obj_size,
+        .obj_per_slab    = obj_per_slab,
+        .slab_size_pages = bytes_to_pages(page_align_up(sizeof(Slab) + obj_size * obj_per_slab)),
     };
     
     strcpy(new_cache->name, name_buf);
@@ -39,8 +40,9 @@ Cache *init_slab_cache(size_t obj_size, const char *name) {
     return new_cache;
 }
 
+/* Grows a cache by adding a new slab to it. */
 void slab_grow(Cache *cache) {
-    Slab *new_slab = (Slab*) ((uint64_t) kernel_alloc_phys_pages(bytes_to_pages(page_align_up(sizeof(Slab) + cache->obj_size * cache->obj_per_slab))) + kernel.hhdm);
+    Slab *new_slab = (Slab*) ((uint64_t) kernel_alloc_pages(cache->slab_size_pages));
     uint64_t stack_size = cache->obj_per_slab * sizeof(uint64_t);
     void *data_addr = (void*) ((uint64_t) new_slab + sizeof(Slab) + stack_size);
     *new_slab = (Slab) {
@@ -83,6 +85,7 @@ void *slab_alloc(Cache *cache) {
     return free_stack_element;
 }
 
+/* Find the slab in a cache which contains a specific address. Returns a pointer to the slab. */
 Slab *slab_find_addr(Cache *cache, void *ptr) {
     struct list *iter = NULL;
     // try finding it in the full list
@@ -111,7 +114,7 @@ Slab *slab_find_addr(Cache *cache, void *ptr) {
     return (Slab*) iter;
 }
 
-// returns status code
+/* Free a single object within a slab. Returns status code. */
 int slab_free(Cache *cache, void *ptr) {
     Slab *slab = slab_find_addr(cache, ptr);
     if (!slab) {
@@ -122,4 +125,27 @@ int slab_free(Cache *cache, void *ptr) {
     uint64_t *free_stack = (uint64_t*) ((uint64_t) slab + sizeof(Slab));
     free_stack[slab->free_stack_head] = (uint64_t) ptr;
     return 0;
+}
+
+/* Destroy and free a whole cache.
+ * Before you complain that I could use list_foreach here... no, I can't in this case.
+ * It doesn't work very well when deleting items.
+ */
+void cache_destroy(Cache *cache) {
+    for (struct list *iter = &cache->free_nodes; iter != iter->next;) {
+        kernel_dealloc_pages(((Slab*) iter), cache->slab_size_pages);
+        iter = iter->next;
+        list_remove(iter);
+    }
+    for (struct list *iter = &cache->full_nodes; iter != iter->next;) {
+        kernel_dealloc_pages(((Slab*) iter), cache->slab_size_pages);
+        iter = iter->next;
+        list_remove(iter);
+    }
+    for (struct list *iter = &cache->partial_nodes; iter != iter->next;) {
+        kernel_dealloc_pages(((Slab*) iter), cache->slab_size_pages);
+        iter = iter->next;
+        list_remove(iter);
+    }
+    kernel_dealloc_pages(cache, bytes_to_pages(page_align_up(sizeof(Cache))));
 }

@@ -13,6 +13,7 @@ struct Cache {
     struct list full_nodes;
     size_t obj_size;
     size_t obj_per_slab;
+    size_t slab_size_pages;
 };
 
 struct Slab {
@@ -28,3 +29,4 @@ struct Slab {
 Cache *init_slab_cache(size_t obj_size, const char *name);
 void  *slab_alloc(Cache *cache);
 int    slab_free(Cache *cache, void *addr);
+void   cache_destroy(Cache *cache);
