@@ -39,6 +39,7 @@ Cache *init_slab_cache(size_t obj_size, const char *name) {
     return new_cache;
 }
 
+/* Grows a cache by adding a new slab to it. */
 void slab_grow(Cache *cache) {
     Slab *new_slab = (Slab*) ((uint64_t) kernel_alloc_phys_pages(bytes_to_pages(page_align_up(sizeof(Slab) + cache->obj_size * cache->obj_per_slab))) + kernel.hhdm);
     uint64_t stack_size = cache->obj_per_slab * sizeof(uint64_t);
@@ -83,6 +84,7 @@ void *slab_alloc(Cache *cache) {
     return free_stack_element;
 }
 
+/* Find the slab in a cache which contains a specific address. Returns a pointer to the slab. */
 Slab *slab_find_addr(Cache *cache, void *ptr) {
     struct list *iter = NULL;
     // try finding it in the full list
@@ -111,7 +113,7 @@ Slab *slab_find_addr(Cache *cache, void *ptr) {
     return (Slab*) iter;
 }
 
-// returns status code
+/* Free a single object within a slab. Returns status code. */
 int slab_free(Cache *cache, void *ptr) {
     Slab *slab = slab_find_addr(cache, ptr);
     if (!slab) {
@@ -123,3 +125,5 @@ int slab_free(Cache *cache, void *ptr) {
     free_stack[slab->free_stack_head] = (uint64_t) ptr;
     return 0;
 }
+
+
