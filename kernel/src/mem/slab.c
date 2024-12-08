@@ -6,7 +6,7 @@
 #include <memory.h>
 #include <string.h>
 
-Cache *init_slab_cache(size_t obj_size, char *name) {
+Cache *init_slab_cache(size_t obj_size, const char *name) {
     char name_buf[20];
     strcpy(name_buf, name);
     if (strlen(name) > 19) {
