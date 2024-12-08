@@ -132,16 +132,19 @@ int slab_free(Cache *cache, void *ptr) {
  * It doesn't work very well when deleting items.
  */
 void cache_destroy(Cache *cache) {
-    for (struct list *iter = &cache->free_nodes; list_len(iter); iter = iter->next) {
+    for (struct list *iter = &cache->free_nodes; iter != iter->next;) {
         kernel_dealloc_pages(((Slab*) iter), cache->slab_size_pages);
+        iter = iter->next;
         list_remove(iter);
     }
-    for (struct list *iter = &cache->full_nodes; list_len(iter); iter = iter->next) {
+    for (struct list *iter = &cache->full_nodes; iter != iter->next;) {
         kernel_dealloc_pages(((Slab*) iter), cache->slab_size_pages);
+        iter = iter->next;
         list_remove(iter);
     }
-    for (struct list *iter = &cache->partial_nodes; list_len(iter); iter = iter->next) {
+    for (struct list *iter = &cache->partial_nodes; iter != iter->next;) {
         kernel_dealloc_pages(((Slab*) iter), cache->slab_size_pages);
+        iter = iter->next;
         list_remove(iter);
     }
     kernel_dealloc_pages(cache, bytes_to_pages(page_align_up(sizeof(Cache))));
