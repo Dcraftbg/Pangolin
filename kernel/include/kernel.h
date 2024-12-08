@@ -4,6 +4,7 @@
 #include <cpu/gdt.h>
 #include <cpu/idt.h>
 #include <bootutils.h>
+#include <vfs.h>
 
 typedef struct {
     PList       plist;
@@ -23,6 +24,7 @@ typedef struct {
     uint64_t char_x;
     uint64_t char_y;
     struct list *slab_caches;
+    Superblock  root_superblock;
 } Kernel;
 
 extern Kernel kernel;

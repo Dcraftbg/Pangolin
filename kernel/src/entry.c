@@ -7,6 +7,7 @@
 #include <cpu/idt.h>
 #include <cpu/exception.h>
 #include <mem/page.h>
+#include <vfs.h>
 
 void _start() {
     init_serial();
@@ -18,6 +19,7 @@ void _start() {
     init_paging();
     kernel_switch_vtable();
     kprint("Switched page tree.\n");
+    init_vfs();
     asm volatile("cli");
-    for (;;);
+    for (;;) asm volatile("hlt");
 }
