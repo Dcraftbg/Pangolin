@@ -1,4 +1,5 @@
 #include <mem/slab.h>
+#include <scheduler.h>
 #include <framebuffer.h>
 #include <serial.h>
 #include <kprint.h>
@@ -20,6 +21,7 @@ void _start() {
     kernel_switch_vtable();
     kprint("Switched page tree.\n");
     init_vfs();
+    init_scheduler();
     asm volatile("cli");
     for (;;) asm volatile("hlt");
 }

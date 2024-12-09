@@ -1,4 +1,5 @@
 #pragma once
+#include <scheduler.h>
 #include <mem/plist.h>
 #include <mem/page.h>
 #include <cpu/gdt.h>
@@ -25,6 +26,9 @@ typedef struct {
     uint64_t char_y;
     struct list *slab_caches;
     Superblock  root_superblock;
+    // TODO: This shold become a `struct list` at some point once there are multiple scheduler queues,
+    // one for each processor, when we get to SMP.
+    SchedulerQueue scheduler;
 } Kernel;
 
 extern Kernel kernel;
