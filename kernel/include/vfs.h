@@ -72,25 +72,6 @@ struct FileSystem {
 };
 
 extern Cache* inode_cache;
-static inline Inode* inode_new(Superblock* superblock, inodeid_t id, inodekind_t kind, InodeOps* ops, void *priv) {
-    Inode* me = slab_alloc(inode_cache);
-    if(!me) return NULL;
-    me->superblock = superblock;
-    me->id = id;
-    me->kind = kind;
-    me->ops = ops;
-    me->priv = priv;
-    me->shared = 1;
-    return me;
-}
-static inline Inode* iget(Inode* inode) {
-    return (inode->shared++, inode);
-}
-static inline void idrop(Inode* inode) {
-    if(--inode->shared == 0) {
-        if(inode->ops->cleanup) inode->ops->cleanup(inode);
-    }
-}
 
 // Inode wrappers
 status_t inode_schedule_write(Inode* inode, const void* data, off_t offset, size_t size, FsFuture* future);
@@ -109,6 +90,29 @@ status_t sb_get_inode(Superblock* superblock, inodeid_t id, Inode** inode);
 status_t direntry_identify(DirEntry* entry, char* name, size_t namecap);
 status_t direntry_cleanup(DirEntry* entry);
 
+
+
+static inline Inode* inode_new(Superblock* superblock, inodeid_t id, inodekind_t kind, InodeOps* ops, void *priv) {
+    Inode* me = slab_alloc(inode_cache);
+    if(!me) return NULL;
+    me->superblock = superblock;
+    me->id = id;
+    me->kind = kind;
+    me->ops = ops;
+    me->priv = priv;
+    me->shared = 1;
+    return me;
+}
+static inline Inode* iget(Inode* inode) {
+    return (inode->shared++, inode);
+}
+static inline void idrop(Inode* inode) {
+    if(--inode->shared == 0) {
+        inode_cleanup(inode);
+    }
+}
+
+
 status_t init_vfs();
 
 struct Path {
@@ -120,6 +124,21 @@ struct Path {
 };
 
 status_t vfs_find_parent(Path* path, inodeid_t* id, Superblock** sb, const char** rest);
+static status_t vfs_find_parent_inode(Path* path, Inode** inode, const char** rest) {
+    status_t e;
+    inodeid_t parent_id;
+    Superblock* parent_sb;
+    if((e=vfs_find_parent(path, &parent_id, &parent_sb, rest)) < 0) {
+        return e;
+    }
+    if((e=sb_get_inode(parent_sb, parent_id, inode)) < 0) {
+        return e;
+    }
+    return 0;
+}
 status_t vfs_find(Path* path, inodeid_t* id, Superblock** sb);
+status_t vfs_open(Path* path, Inode** inode);
+status_t vfs_create(Path* path);
+status_t vfs_mkdir(Path* path);
 #define path_abs(_path) (Path){.from={.superblock=&kernel.root_superblock, .inode=kernel.root_superblock.root}, .path=_path}
 status_t parse_abs(const char* path, Path* result);

@@ -86,12 +86,12 @@ status_t vfs_find_parent(Path* path, inodeid_t* id, Superblock** sb, const char*
         }
         DirEntry dentry;
         if((e=inode_find(dir, p, end-p, &dentry)) < 0) {
-            inode_cleanup(dir);
+            idrop(dir);
             return e;
         }
         *id = dentry.id;
         *sb = dentry.superblock;
-        inode_cleanup(dir);
+        idrop(dir);
         p = end;
     }
     *rest = p;
@@ -99,24 +99,60 @@ status_t vfs_find_parent(Path* path, inodeid_t* id, Superblock** sb, const char*
 }
 status_t vfs_find(Path* path, inodeid_t* id, Superblock** sb) {
     status_t e;
-    inodeid_t parent_id;
-    Superblock* parent_sb;
-    const char* filename=NULL;
-    if((e=vfs_find_parent(path, &parent_id, &parent_sb, &filename)) < 0) {
-        return e;
-    }
     Inode* dir;
-    if((e=sb_get_inode(parent_sb, parent_id, &dir)) < 0) {
-        return e;
+    const char* filename;
+    if((e=vfs_find_parent_inode(path, &dir, &filename)) < 0) {
+        return 0;
     }
     DirEntry dentry;
     if((e=inode_find(dir, filename, strlen(filename), &dentry)) < 0) {
-        inode_cleanup(dir);
+        idrop(dir);
         return e;
     }
-    inode_cleanup(dir);
+    idrop(dir);
     *id = dentry.id;
     *sb = dentry.superblock;
+    return 0;
+}
+status_t vfs_open(Path* path, Inode** inode) {
+    status_t e;
+    inodeid_t id;
+    Superblock* sb;
+    if((e=vfs_find(path, &id, &sb)) < 0) {
+        return e;
+    }
+    if((e=sb_get_inode(sb, id, inode)) < 0) {
+        return e;
+    }
+    return 0;
+}
+
+status_t vfs_create(Path* path) {
+    status_t e;
+    Inode* dir;
+    const char* filename;
+    if((e=vfs_find_parent_inode(path, &dir, &filename)) < 0) {
+        return 0;
+    }
+    if((e=inode_create(dir, filename, strlen(filename))) < 0) {
+        idrop(dir);
+        return e;
+    }
+    idrop(dir);
+    return 0;
+}
+status_t vfs_mkdir(Path* path) {
+    status_t e;
+    Inode* dir;
+    const char* filename;
+    if((e=vfs_find_parent_inode(path, &dir, &filename)) < 0) {
+        return 0;
+    }
+    if((e=inode_mkdir(dir, filename, strlen(filename))) < 0) {
+        idrop(dir);
+        return e;
+    }
+    idrop(dir);
     return 0;
 }
 status_t init_vfs() {
