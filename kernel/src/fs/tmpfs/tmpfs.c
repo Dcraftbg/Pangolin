@@ -160,32 +160,10 @@ static status_t tmpfs_schedule_get_dir_entries(Inode* dir, DirEntry* entries, of
 }
 
 
-static status_t tmpfs_diropen(Inode* inode, Inode** dir) {
-    if(inode->kind != INODE_DIR) return -INVALID_KIND;
-    *dir = iget(inode);
-    return 0;
-}
-static status_t tmpfs_dirclose(Inode* inode) {
-    idrop(inode);
-    return 0;
-}
-static status_t tmpfs_open(Inode* inode, Inode** file) {
-    if(inode->kind != INODE_FILE) return -INVALID_KIND;
-    *file = iget(inode);
-    return 0;
-}
-static status_t tmpfs_close(Inode* inode) {
-    idrop(inode);
-    return 0;
-}
 static InodeOps tmpfs_inode_ops = {
-    .open                     = tmpfs_open,
-    .close                    = tmpfs_close,
-    .diropen                  = tmpfs_diropen,
     .create                   = tmpfs_create,
     .mkdir                    = tmpfs_mkdir,
     .schedule_get_dir_entries = tmpfs_schedule_get_dir_entries,
-    .dirclose                 = tmpfs_dirclose,
 };
 
 static status_t tmpfs_unmount(Superblock* superblock) {
