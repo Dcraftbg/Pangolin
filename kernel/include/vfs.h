@@ -28,17 +28,11 @@ static inline void fsfuture_instant(FsFuture* future, Superblock* superblock) {
 }
 
 struct InodeOps {
-    status_t (*open) (Inode* inode, Inode** file);
     status_t (*schedule_write)(Inode* inode, const void* data, off_t offset, size_t size, FsFuture* future);
     status_t (*schedule_read) (Inode* inode, void* data      , off_t offset, size_t size, FsFuture* future);
-    status_t (*close)(Inode* inode);
-
-    status_t (*diropen)(Inode* inode, Inode** dir);
     status_t (*create)(Inode* dir, const char* name, size_t namelen);
     status_t (*mkdir)(Inode* dir, const char* name, size_t namelen);
     status_t (*schedule_get_dir_entries)(Inode* dir, DirEntry* entries, off_t offset, size_t count, FsFuture* future);
-    status_t (*dirclose)(Inode* inode);
-
     status_t (*cleanup)(Inode* inode);
 };
 struct Inode {
