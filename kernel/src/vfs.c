@@ -85,7 +85,7 @@ status_t vfs_find_parent(Path* path, inodeid_t* id, Superblock** sb, const char*
             return e;
         }
         DirEntry dentry;
-        if((e=inode_find(dir, p, end-p, &dentry)) < 0) {
+        if((e=inode_find(dir, p, end-p-1, &dentry)) < 0) {
             idrop(dir);
             return e;
         }
@@ -102,6 +102,12 @@ status_t vfs_find(Path* path, inodeid_t* id, Superblock** sb) {
     Inode* dir;
     const char* filename;
     if((e=vfs_find_parent_inode(path, &dir, &filename)) < 0) {
+        return e;
+    }
+    if(filename[0] == '\0') {
+        *id = dir->id;
+        *sb = dir->superblock;
+        idrop(dir);
         return 0;
     }
     DirEntry dentry;
@@ -126,13 +132,13 @@ status_t vfs_open(Path* path, Inode** inode) {
     }
     return 0;
 }
-
+// TODO: Checks for already exists for mkdir and create
 status_t vfs_create(Path* path) {
     status_t e;
     Inode* dir;
     const char* filename;
     if((e=vfs_find_parent_inode(path, &dir, &filename)) < 0) {
-        return 0;
+        return e;
     }
     if((e=inode_create(dir, filename, strlen(filename))) < 0) {
         idrop(dir);

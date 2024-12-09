@@ -17,14 +17,13 @@ struct FsFuture {
     void* priv;
 };
 // fsfuture for instant completion for file systems that don't implement async
-static inline status_t fsfuture_instant_complete(FsFuture* _future) {
-    (void)_future;
-    return 0;
+static inline status_t fsfuture_instant_complete(FsFuture* future) {
+    return (status_t)future->priv;
 }
-static inline void fsfuture_instant(FsFuture* future, Superblock* superblock) {
+static inline void fsfuture_instant(FsFuture* future, Superblock* superblock, status_t status) {
     future->superblock = superblock;
     future->complete = fsfuture_instant_complete;
-    future->priv = NULL;
+    future->priv = (void*)status;
 }
 
 struct InodeOps {
@@ -75,9 +74,9 @@ extern Cache* inode_cache;
 
 // Inode wrappers
 status_t inode_schedule_write(Inode* inode, const void* data, off_t offset, size_t size, FsFuture* future);
-status_t inode_schedule_read(Inode* inode, void* data      , off_t offset, size_t size, FsFuture* future);
+status_t inode_schedule_read (Inode* inode, void* data      , off_t offset, size_t size, FsFuture* future);
 status_t inode_create(Inode* dir, const char* name, size_t namelen);
-status_t inode_mkdir(Inode* dir, const char* name, size_t namelen);
+status_t inode_mkdir (Inode* dir, const char* name, size_t namelen);
 status_t inode_find(Inode* dir, const char* name, size_t namelen, DirEntry* direntry);
 status_t inode_schedule_get_dir_entries(Inode* dir, DirEntry* entries, off_t offset, size_t count, FsFuture* future);
 status_t inode_cleanup(Inode* inode);
@@ -142,3 +141,23 @@ status_t vfs_create(Path* path);
 status_t vfs_mkdir(Path* path);
 #define path_abs(_path) (Path){.from={.superblock=&kernel.root_superblock, .inode=kernel.root_superblock.root}, .path=_path}
 status_t parse_abs(const char* path, Path* result);
+
+// Abs version of functions. Used mainly by the kernel and for initrd
+static status_t vfs_open_abs(const char* path, Inode** inode) {
+    status_t e;
+    Path p;
+    if((e=parse_abs(path, &p)) < 0) return e;
+    return vfs_open(&p, inode);
+}
+static status_t vfs_create_abs(const char* path) {
+    status_t e;
+    Path p;
+    if((e=parse_abs(path, &p)) < 0) return e;
+    return vfs_create(&p);
+}
+static status_t vfs_mkdir_abs(const char* path) {
+    status_t e;
+    Path p;
+    if((e=parse_abs(path, &p)) < 0) return e;
+    return vfs_mkdir(&p);
+}

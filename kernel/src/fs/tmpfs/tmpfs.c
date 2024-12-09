@@ -70,9 +70,22 @@ static void tmpfs_dentry_destroy(TmpfsDirEntry* entry) {
     slab_free(tmpfs_direntry_cache, entry);
 }
 
+static status_t tmpfs_direntry_identify(DirEntry* entry, char* name, size_t namecap) {
+    TmpfsDirEntry* tmpfs_dentry = entry->priv;
+    size_t tmpfs_len = strlen(tmpfs_dentry->name);
+    if(tmpfs_len >= namecap) return -BUF_TOO_SMALL;
+    memcpy(name, tmpfs_dentry->name, tmpfs_len+1);
+    return 0;
+}
 static DirEntryOps tmpfs_direntry_ops = {
-    0
+    .identify = tmpfs_direntry_identify,
 };
+static void dentry_from_tmpfs(DirEntry* entry, TmpfsDirEntry* tmpfs_entry, Superblock* superblock) {
+    entry->superblock = superblock;
+    entry->id         = (inodeid_t)tmpfs_entry->inode;
+    entry->ops        = &tmpfs_direntry_ops;
+    entry->priv       = tmpfs_entry;
+}
 static status_t tmpfs_put(TmpfsInode* dir, TmpfsDirEntry* new_entry) {
     TmpfsData* prev = (TmpfsData*)(&(dir->data));
     TmpfsData* head = dir->data;
@@ -113,7 +126,7 @@ static status_t tmpfs_create(Inode* dir, const char* name, size_t namelen) {
 }
 static status_t tmpfs_mkdir(Inode* dir, const char* name, size_t namelen) {
     if(dir->kind != INODE_DIR) return -INVALID_KIND;
-    if(namelen > MAX_TMPFS_NAME) return -NAME_TOO_LONG;
+    if(namelen >= MAX_TMPFS_NAME) return -NAME_TOO_LONG;
     TmpfsInode* file = directory_new();
     if(!file) return -NOT_ENOUGH_MEMORY;
     TmpfsDirEntry* entry = tmpfs_dentry_new(name, namelen, file);
@@ -129,11 +142,31 @@ static status_t tmpfs_mkdir(Inode* dir, const char* name, size_t namelen) {
     }
     return 0;
 }
+static status_t tmpfs_find(Inode* dir, const char* name, size_t namelen, DirEntry* entry) {
+    if(dir->kind != INODE_DIR) return -INVALID_KIND;
+    TmpfsInode* inode = dir->priv;
+    TmpfsData* head = inode->data;
+    size_t size=inode->size;
+    while(size) {
+        size_t left = size < DENTS_PER_BLOCK ? size : DENTS_PER_BLOCK;
+        TmpfsDirEntry** dents = (TmpfsDirEntry**)head->data;
+        for(size_t i = 0; i < left; ++i) {
+            size_t dents_len = strlen(dents[i]->name); 
+            if(dents_len == namelen && memcmp(dents[i]->name, name, namelen) == 0) {
+                dentry_from_tmpfs(entry, dents[i], dir->superblock);
+                return 0; 
+            }
+        }
+        size -= left;
+        head = head->next;
+    }
+    return -NOT_FOUND;
+}
 static status_t tmpfs_schedule_get_dir_entries(Inode* dir, DirEntry* entries, off_t offset, size_t count, FsFuture* future) {
     TmpfsInode* inode = dir->priv;
     if(dir->kind != INODE_DIR) return -INVALID_KIND;
     if((size_t)offset > inode->size) return -INVALID_OFFSET;
-    if((size_t)offset == inode->size) return 0;
+    if((size_t)offset == inode->size) return -REACHED_EOF;
     TmpfsData* head = inode->data;
     while(head && (size_t)offset >= DENTS_PER_BLOCK) {
         offset -= DENTS_PER_BLOCK;
@@ -148,23 +181,22 @@ static status_t tmpfs_schedule_get_dir_entries(Inode* dir, DirEntry* entries, of
         if(left > DENTS_PER_BLOCK) left = DENTS_PER_BLOCK;
         for(size_t i = 0; i < left; ++i) {
             DirEntry* entry = &entries[read+i];
-            TmpfsDirEntry* tmpfs_entry = ((TmpfsDirEntry**)head->data)[i];
-            entry->superblock = dir->superblock;
-            entry->id         = (inodeid_t)tmpfs_entry->inode;
-            entry->ops        = &tmpfs_direntry_ops;
-            entry->priv       = tmpfs_entry;
+            TmpfsDirEntry* tmpfs_entry = ((TmpfsDirEntry**)head->data)[offset+i];
+            dentry_from_tmpfs(entry, tmpfs_entry, dir->superblock);
         }
         read += left;
         head = head->next;
+        offset = 0;
     }
-    fsfuture_instant(future, dir->superblock);
-    return read;
+    fsfuture_instant(future, dir->superblock, read);
+    return 0;
 }
 
 
 static InodeOps tmpfs_inode_ops = {
     .create                   = tmpfs_create,
     .mkdir                    = tmpfs_mkdir,
+    .find                     = tmpfs_find,
     .schedule_get_dir_entries = tmpfs_schedule_get_dir_entries,
 };
 
@@ -198,7 +230,7 @@ static status_t tmpfs_init(FileSystem* _fs) {
     if(!(tmpfs_inode_cache = init_slab_cache(sizeof(TmpfsInode), "TmpfsInode"))) 
         return -NOT_ENOUGH_MEMORY;
     // TODO: cleanup tmpfs_inode_cache in case tmpfs_direntry_cache fails
-    if(!(tmpfs_inode_cache = init_slab_cache(sizeof(TmpfsDirEntry), "TmpfsDirEntry"))) 
+    if(!(tmpfs_direntry_cache = init_slab_cache(sizeof(TmpfsDirEntry), "TmpfsDirEntry"))) 
         return -NOT_ENOUGH_MEMORY;
     return 0;
 
