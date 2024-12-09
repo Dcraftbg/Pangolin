@@ -148,9 +148,11 @@ static status_t tmpfs_schedule_get_dir_entries(Inode* dir, DirEntry* entries, of
         if(left > DENTS_PER_BLOCK) left = DENTS_PER_BLOCK;
         for(size_t i = 0; i < left; ++i) {
             DirEntry* entry = &entries[read+i];
+            TmpfsDirEntry* tmpfs_entry = ((TmpfsDirEntry**)head->data)[i];
             entry->superblock = dir->superblock;
+            entry->id         = (inodeid_t)tmpfs_entry->inode;
             entry->ops        = &tmpfs_direntry_ops;
-            entry->priv       = ((TmpfsDirEntry**)head->data)[i];
+            entry->priv       = tmpfs_entry;
         }
         read += left;
         head = head->next;

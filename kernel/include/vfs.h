@@ -46,12 +46,12 @@ struct Inode {
 };
 struct DirEntry {
     Superblock *superblock;
+    inodeid_t id;
     DirEntryOps *ops;
     void *priv;
 };
 struct DirEntryOps {
     status_t (*identify)(DirEntry* entry, char* name, size_t namecap);
-    status_t (*get_inode)(DirEntry* entry, Inode **inode);
     status_t (*cleanup)(DirEntry* entry);
 };
 struct Superblock {
