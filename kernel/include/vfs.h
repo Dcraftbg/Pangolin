@@ -92,14 +92,23 @@ static inline void idrop(Inode* inode) {
     }
 }
 
-
-status_t schedule_write(Inode* inode, const void* data, off_t offset, size_t size, FsFuture* future);
-status_t schedule_read(Inode* inode, void* data      , off_t offset, size_t size, FsFuture* future);
-status_t create(Inode* dir, const char* name, size_t namelen);
-status_t mkdir(Inode* dir, const char* name, size_t namelen);
-status_t find(Inode* dir, const char* name, size_t namelen, DirEntry* direntry);
-status_t schedule_get_dir_entries(Inode* dir, DirEntry* entries, off_t offset, size_t count, FsFuture* future);
+// Inode wrappers
+status_t inode_schedule_write(Inode* inode, const void* data, off_t offset, size_t size, FsFuture* future);
+status_t inode_schedule_read(Inode* inode, void* data      , off_t offset, size_t size, FsFuture* future);
+status_t inode_create(Inode* dir, const char* name, size_t namelen);
+status_t inode_mkdir(Inode* dir, const char* name, size_t namelen);
+status_t inode_find(Inode* dir, const char* name, size_t namelen, DirEntry* direntry);
+status_t inode_schedule_get_dir_entries(Inode* dir, DirEntry* entries, off_t offset, size_t count, FsFuture* future);
 status_t inode_cleanup(Inode* inode);
+
+// Superblock wrappers
+status_t sb_unmount(Superblock* superblock);
+status_t sb_get_inode(Superblock* superblock, inodeid_t id, Inode** inode);
+
+// DirEntry wrappers
+status_t direntry_identify(DirEntry* entry, char* name, size_t namecap);
+status_t direntry_cleanup(DirEntry* entry);
+
 status_t init_vfs();
 
 struct Path {
@@ -110,5 +119,7 @@ struct Path {
     const char* path;
 };
 
+status_t vfs_find_parent(Path* path, inodeid_t* id, Superblock** sb, const char** rest);
+status_t vfs_find(Path* path, inodeid_t* id, Superblock** sb);
 #define path_abs(_path) (Path){.from={.superblock=&kernel.root_superblock, .inode=kernel.root_superblock.root}, .path=_path}
 status_t parse_abs(const char* path, Path* result);
