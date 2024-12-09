@@ -32,6 +32,7 @@ struct InodeOps {
     status_t (*schedule_read) (Inode* inode, void* data      , off_t offset, size_t size, FsFuture* future);
     status_t (*create)(Inode* dir, const char* name, size_t namelen);
     status_t (*mkdir)(Inode* dir, const char* name, size_t namelen);
+    status_t (*find)(Inode* dir, const char* name, size_t namelen, DirEntry* direntry);
     status_t (*schedule_get_dir_entries)(Inode* dir, DirEntry* entries, off_t offset, size_t count, FsFuture* future);
     status_t (*cleanup)(Inode* inode);
 };
@@ -90,6 +91,15 @@ static inline void idrop(Inode* inode) {
         if(inode->ops->cleanup) inode->ops->cleanup(inode);
     }
 }
+
+
+status_t schedule_write(Inode* inode, const void* data, off_t offset, size_t size, FsFuture* future);
+status_t schedule_read(Inode* inode, void* data      , off_t offset, size_t size, FsFuture* future);
+status_t create(Inode* dir, const char* name, size_t namelen);
+status_t mkdir(Inode* dir, const char* name, size_t namelen);
+status_t find(Inode* dir, const char* name, size_t namelen, DirEntry* direntry);
+status_t schedule_get_dir_entries(Inode* dir, DirEntry* entries, off_t offset, size_t count, FsFuture* future);
+status_t inode_cleanup(Inode* inode);
 status_t init_vfs();
 
 struct Path {
@@ -99,5 +109,6 @@ struct Path {
     } from;
     const char* path;
 };
+
 #define path_abs(_path) (Path){.from={.superblock=&kernel.root_superblock, .inode=kernel.root_superblock.root}, .path=_path}
 status_t parse_abs(const char* path, Path* result);
