@@ -3,11 +3,11 @@
 #include <stdint.h>
 #include <list.h>
 
-typedef uint64_t pid_t;
+typedef uint64_t task_id_t;
 
 typedef struct {
     struct list list;
-    pid_t pid;
+    task_id_t tid;
     /* TODO:
      * More fields will need to be added such as pml4 address etc.
      * While the core scheduler is being developed, that's not really needed, but it'll definitely
@@ -22,9 +22,9 @@ typedef struct {
     // This is also why I named the above element `tasklist` instead of just `list`.
     Task *current_task;
     Cache *cache;
-    pid_t pid_upto;
+    task_id_t tid_upto;
 } SchedulerQueue;
 
 void init_scheduler();
-pid_t task_add();
+Task *task_add();
 Task *task_select();

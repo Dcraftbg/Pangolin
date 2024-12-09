@@ -12,11 +12,11 @@ void init_scheduler() {
 }
 
 // TODO: More arguments will ofc need to be added here as the fields for Task increases.
-pid_t task_add() {
+Task *task_add() {
     Task *new_task = slab_alloc(kernel.scheduler.cache);
-    new_task->pid = kernel.scheduler.pid_upto++;
+    new_task->tid = kernel.scheduler.tid_upto++;
     list_insert(&new_task->list, &kernel.scheduler.tasklist);
-    return new_task->pid;
+    return new_task;
 }
 
 Task *task_select() {
