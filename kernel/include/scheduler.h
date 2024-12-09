@@ -20,7 +20,7 @@ typedef struct {
     struct list tasklist;
     // TODO: Add another `struct list` with a list of all the scheduler queues. This will be used when we do SMP.
     // This is also why I named the above element `tasklist` instead of just `list`.
-    struct list *current_task;
+    Task *current_task;
     Cache *cache;
     pid_t pid_upto;
 } SchedulerQueue;
