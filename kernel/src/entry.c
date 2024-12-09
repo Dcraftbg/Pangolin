@@ -22,11 +22,6 @@ void _start() {
     kprint("Switched page tree.\n");
     init_vfs();
     init_scheduler();
-    pid_t pid;
-    for (size_t i = 0; i < 10; i++) {
-        pid = task_add();
-        kprint("New PID = %zu\n", pid);
-    }
     asm volatile("cli");
     for (;;) asm volatile("hlt");
 }

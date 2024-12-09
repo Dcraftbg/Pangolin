@@ -7,6 +7,7 @@
 void init_scheduler() {
     list_init(&kernel.scheduler.tasklist);
     kernel.scheduler.cache = init_slab_cache(sizeof(Task), "Scheduler Queue");
+    kernel.scheduler.current_task = &kernel.scheduler.tasklist;
     kprint("Initiated scheduler.\n");
 }
 
@@ -16,4 +17,11 @@ pid_t task_add() {
     new_task->pid = kernel.scheduler.pid_upto++;
     list_insert(&new_task->list, &kernel.scheduler.tasklist);
     return new_task->pid;
+}
+
+Task *task_select() {
+    kernel.scheduler.current_task = kernel.scheduler.current_task->next;
+    if (kernel.scheduler.current_task == &kernel.scheduler.tasklist)
+        kernel.scheduler.current_task = kernel.scheduler.current_task->next;
+    return (Task*) kernel.scheduler.current_task;
 }
