@@ -1,3 +1,4 @@
+#include <status.h>
 #include <fs/ustar.h>
 #include <mem/slab.h>
 #include <scheduler.h>
