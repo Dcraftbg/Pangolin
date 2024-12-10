@@ -1,3 +1,4 @@
+#include <cpu.h>
 #include <cpu/exception.h>
 #include <cpu/idt.h>
 #include <kprint.h>
@@ -24,8 +25,7 @@ void exception_handler(IDTEFrame* frame) {
     kprint("Gotten exception (%zu) with code %zu at rip: %p at virtual: %p\n",frame->type, (size_t)frame->code,(void*)frame->rip,(void*)frame->cr2);
     kprint("Stack unwinding:\n");
     unwind_stack((void*)frame->rbp, (void*)frame->rip);
-    asm volatile("cli");
-    for(;;) asm volatile ("hlt");
+    HALT_DEVICE();
 }
 
 void init_exceptions() {

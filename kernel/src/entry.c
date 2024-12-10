@@ -1,5 +1,5 @@
+#include <cpu.h>
 #include <version.h>
-#include <status.h>
 #include <fs/ustar.h>
 #include <mem/slab.h>
 #include <scheduler.h>
@@ -87,6 +87,5 @@ void _start() {
     init_scheduler();
     unpack_ustar();
     print_version();
-    asm volatile("cli");
-    for (;;) asm volatile("hlt");
+    HALT_DEVICE();
 }
