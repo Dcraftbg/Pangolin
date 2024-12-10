@@ -11,7 +11,6 @@ typedef struct {
     PList       plist;
     uintptr_t   hhdm;
     uint64_t *GDT;
-    IDTR idtr;
     IDTEntry *idt;
     Framebuffer framebuffer;
     page_t pml4;
