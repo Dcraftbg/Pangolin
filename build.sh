@@ -17,7 +17,7 @@ mkdir -p sysroot/boot
 cp -v bin/pangolin sysroot/boot/
 
 echo "Setting up initial ramdisk archive..."
-tar --create --file=sysroot/boot/initrd --format=ustar -C initrd bin home
+tar --create --file=sysroot/boot/initrd --format=ustar -C initrd home
 
 echo "Setting up bootloader..."
 mkdir -p sysroot/boot/limine
