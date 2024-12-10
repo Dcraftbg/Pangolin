@@ -47,6 +47,7 @@ void init_paging(); // Called to initialse
        :\
        : "r" ((uintptr_t)kernel.pml4 - kernel.hhdm), \
          "r" (KERNEL_STACK_PTR)\
-    )
+    ); \
+    kprint("Switched page tree.\n")
 
 

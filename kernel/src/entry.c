@@ -79,7 +79,6 @@ void _start() {
     init_exceptions();
     init_paging();
     kernel_switch_vtable();
-    kprint("Switched page tree.\n");
     init_vfs();
     init_scheduler();
     unpack_ustar();
