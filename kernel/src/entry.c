@@ -1,3 +1,4 @@
+#include <fs/ustar.h>
 #include <mem/slab.h>
 #include <scheduler.h>
 #include <framebuffer.h>
@@ -70,6 +71,7 @@ void _start() {
     fs_test();
     ls("/");
     ls("/foo");
+    unpack_ustar();
     asm volatile("cli");
     for (;;) asm volatile("hlt");
 }
