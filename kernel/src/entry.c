@@ -11,19 +11,8 @@
 #include <cpu/exception.h>
 #include <mem/page.h>
 #include <vfs.h>
-
 #include <string.h>
-void fs_test() {
-    status_t e;
-    if((e=vfs_mkdir_abs("/foo")) < 0) {
-        kprint("ERROR: Failed to create /foo: %d\n", (int)e);
-        return;
-    }
-    if((e=vfs_create_abs("/hello.txt")) < 0) {
-        kprint("ERROR: Failed to create /hello.txt: %d\n", (int)e);
-        return;
-    }
-}
+
 void cat(const char* path) {
     status_t e;
     char buf[128]={0};
@@ -94,9 +83,6 @@ void _start() {
     init_vfs();
     init_scheduler();
     unpack_ustar();
-    ls("/");
-    ls("/home");
-    cat("/home/README.txt");
     asm volatile("cli");
     for (;;) asm volatile("hlt");
 }
