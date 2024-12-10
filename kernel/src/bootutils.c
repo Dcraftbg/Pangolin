@@ -16,7 +16,17 @@ const char* boot_memregion_kind_str(uint32_t kind) {
     if(kind >= (sizeof(boot_memregion_kind_map)/sizeof(*boot_memregion_kind_map))) return NULL;
     return boot_memregion_kind_map[kind];
 }
-
+static struct limine_internal_module initrd = {
+    .path = "initrd",
+    .flags = LIMINE_INTERNAL_MODULE_REQUIRED
+};
+struct limine_internal_module *module_list = &initrd;
+static volatile struct limine_module_request initrd_request = {
+    .id = LIMINE_MODULE_REQUEST,
+    .revision = 0,
+    .internal_modules = &module_list,
+    .internal_module_count = 1
+};
 static volatile struct limine_memmap_request limine_memmap_request = {
     .id = LIMINE_MEMMAP_REQUEST,
     .revision = 0 
@@ -52,6 +62,14 @@ void boot_get_memregion_at(BootMemRegion* region, size_t index) {
 uintptr_t boot_get_hhdm() {
     if(!limine_hhdm_request.response) kpanic("(boot:limine) Missing hhdm response");
     return limine_hhdm_request.response->offset;
+}
+uintptr_t boot_get_initrd() {
+    if(!initrd_request.response)
+        kpanic("(boot:limine) Did not recieve initial ramdisk response from bootloader.");
+    struct limine_file *modules = *(initrd_request.response->modules);
+    if (initrd_request.response->module_count < 1)
+        kpanic("(boot:limine) Less than one module provided by bootloader, could not get initial ramdisk.");
+    return (uintptr_t) modules->address;
 }
 Framebuffer boot_get_framebuffer() {
     if(!limine_framebuffer_request.response) kpanic("(boot:limine) Missing framebuffer response");
