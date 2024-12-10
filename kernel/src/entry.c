@@ -68,10 +68,9 @@ void _start() {
     kprint("Switched page tree.\n");
     init_vfs();
     init_scheduler();
-    fs_test();
-    ls("/");
-    ls("/foo");
     unpack_ustar();
+    ls("/");
+    ls("/home");
     asm volatile("cli");
     for (;;) asm volatile("hlt");
 }

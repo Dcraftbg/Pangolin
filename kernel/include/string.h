@@ -17,3 +17,4 @@ size_t itoa(char* buf, size_t cap, int value);
 size_t sztoa(char* buf, size_t cap, size_t value);
 size_t utoha(char* buf, size_t cap, unsigned int value);
 size_t uptrtoha_full(char* buf, size_t cap, uintptr_t value);
+size_t oct2bin(char *str, int size);

@@ -151,3 +151,14 @@ size_t uptrtoha_full(char* buf, size_t cap, uintptr_t value) {
     strflip(buf, at);
     return at;
 }
+
+size_t oct2bin(char *str, int size) {
+    int n = 0;
+    char *c = str;
+    while (size-- > 0) {
+        n *= 8;
+        n += *c - '0';
+        c++;
+    }
+    return n;
+}
