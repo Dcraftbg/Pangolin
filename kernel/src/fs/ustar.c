@@ -25,7 +25,6 @@ static status_t write_exact(Inode* file, const void* data, size_t size) {
 }
 
 // TODO: Boundary checks
-// TODO: Actually copy the file contents to the files
 
 void unpack_ustar() {
     status_t e;
