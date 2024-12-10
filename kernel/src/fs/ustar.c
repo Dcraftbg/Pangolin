@@ -1,3 +1,4 @@
+#include <fsutils.h>
 #include <fs/ustar.h>
 #include <kprint.h>
 #include <kpanic.h>
@@ -9,20 +10,6 @@
 #define INDICATOR_OFF 257
 #define FILESIZE_OFF  0x7C
 #define TYPE_OFF      156
-
-// TODO: Move this out to fsutils or some other module
-static status_t write_exact(Inode* file, const void* data, size_t size) {
-    status_t e;
-    off_t off=0;
-    while(size) {
-        if((e=inode_write(file, data, off, size)) < 0) return e;
-        if(e == 0) return -REACHED_EOF;
-        size -= e;
-        off  += e;
-        data += e;
-    }
-    return size;
-}
 
 void unpack_ustar() {
     status_t e;
