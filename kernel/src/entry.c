@@ -11,6 +11,7 @@
 #include <mem/page.h>
 #include <vfs.h>
 
+#include <string.h>
 void fs_test() {
     status_t e;
     if((e=vfs_mkdir_abs("/foo")) < 0) {
@@ -21,6 +22,29 @@ void fs_test() {
         kprint("ERROR: Failed to create /hello.txt: %d\n", (int)e);
         return;
     }
+}
+void cat(const char* path) {
+    status_t e;
+    char buf[128]={0};
+    Inode* file;
+    if((e=vfs_open_abs(path, &file)) < 0) {
+        kprint("Failed to open file `%s`: %d\n", path, (int)e);
+        return;
+    }
+    off_t offset=0;
+    kprint("cat %s\n", path);
+    for(;;) {
+        memset(buf, 0, sizeof(buf));
+        if((e=inode_read(file, buf, offset, sizeof(buf)-1)) < 0) {
+            if(e == -REACHED_EOF) break;
+            kprint("Failed to read file `%s`: %d\n", path, (int)e);
+            idrop(file);
+            return;
+        }
+        offset+=e;
+        kprint("%s", buf);
+    }
+    idrop(file);
 }
 void ls(const char* path) {
     status_t e;
@@ -71,6 +95,7 @@ void _start() {
     unpack_ustar();
     ls("/");
     ls("/home");
+    cat("/home/README.txt");
     asm volatile("cli");
     for (;;) asm volatile("hlt");
 }
