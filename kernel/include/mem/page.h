@@ -40,14 +40,16 @@ bool page_alloc(page_t pml4_addr, uintptr_t virt, size_t pages_count, pageflags_
 void init_paging(); // Called to initialse
 
 #define kernel_switch_vtable() \
-    __asm__ volatile (\
-       "movq %0, %%cr3\n"\
-       "movq %1, %%rsp\n"\
-       "movq $0, %%rbp\n"\
-       :\
-       : "r" ((uintptr_t)kernel.pml4 - kernel.hhdm), \
-         "r" (KERNEL_STACK_PTR)\
-    ); \
-    kprint("Switched page tree.\n")
+    do {\
+        __asm__ volatile (\
+           "movq %0, %%cr3\n"\
+           "movq %1, %%rsp\n"\
+           "movq $0, %%rbp\n"\
+           :\
+           : "r" ((uintptr_t)kernel.pml4 - kernel.hhdm), \
+             "r" (KERNEL_STACK_PTR)\
+        ); \
+        kprint("Switched page tree.\n");\
+    } while (0)
 
 
