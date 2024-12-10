@@ -8,16 +8,16 @@
 #include <vfs.h>
 
 typedef struct {
-    PList       plist;
-    uintptr_t   hhdm;
-    uint64_t *GDT;
-    IDTEntry *idt;
-    Framebuffer framebuffer;
-    page_t pml4;
-    uint64_t char_x;
-    uint64_t char_y;
-    struct list *slab_caches;
-    Superblock  root_superblock;
+    PList          plist;
+    uintptr_t      hhdm;
+    uint64_t      *GDT;
+    IDTEntry      *idt;
+    Framebuffer    framebuffer;
+    page_t         pml4;
+    uint64_t       char_x;
+    uint64_t       char_y;
+    struct list   *slab_caches;
+    Superblock     root_superblock;
     // TODO: This shold become a `struct list` at some point once there are multiple scheduler queues,
     // one for each processor, when we get to SMP.
     SchedulerQueue scheduler;
