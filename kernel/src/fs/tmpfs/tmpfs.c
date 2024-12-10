@@ -195,25 +195,26 @@ static status_t tmpfs_schedule_get_dir_entries(Inode* dir, DirEntry* entries, of
     fsfuture_instant(future, dir->superblock, tmpfs_get_dir_entries(dir, entries, offset, count));
     return 0;
 }
-static status_t tmpfs_read (Inode* file, void* data, off_t offset, size_t size) {
+static status_t tmpfs_read(Inode* file, void* data, off_t offset, size_t size) {
     TmpfsInode* inode = file->priv;
     if(file->kind != INODE_FILE) return -INVALID_KIND;
     if((size_t)offset > inode->size) return -INVALID_OFFSET;
     if((size_t)offset == inode->size) return -REACHED_EOF;
+    size_t left = inode->size-offset;
+    if(size > left) size=left;
     TmpfsData* head = inode->data;
-    while(head && (size_t)offset >= DENTS_PER_BLOCK) {
-        offset -= DENTS_PER_BLOCK;
+    while(head && (size_t)offset >= BYTES_PER_BLOCK) {
+        offset -= BYTES_PER_BLOCK;
         head = head->next;
     }
     if(!head) return -FILE_CORRUPTION;
-    size_t left = inode->size-offset;
-    if(size > left) size=left;
     size_t read = 0;
     while(head && read < size) {
-        left = size-read;
-        if(left > BYTES_PER_BLOCK) left = BYTES_PER_BLOCK;
-        memcpy(data, head->data+offset, left);
-        read += left;
+        size_t block_left = BYTES_PER_BLOCK-offset;
+        size_t to_read = size-read;
+        if(to_read > block_left) to_read = block_left;
+        memcpy(data+read, head->data+offset, to_read);
+        read += to_read;
         head = head->next;
         offset = 0;
     }
@@ -233,17 +234,20 @@ static status_t tmpfs_write(Inode* file, const void* data, off_t offset, size_t 
     size_t written = 0;
     const uint8_t* bytes = data;
     while(written < size) {
+        size_t block_left = BYTES_PER_BLOCK-offset;
         size_t to_write = size-written;
-        if(to_write > BYTES_PER_BLOCK) to_write = BYTES_PER_BLOCK;
+        if(to_write > block_left) to_write = block_left;
         if(!head) {
             prev->next = datablock_new();
             if(!prev->next) return written;
             head = prev->next;
             inode->size += to_write;
         }
-        memcpy(head->data, bytes+written, to_write);
+        memcpy(head->data+offset, bytes+written, to_write);
         written += to_write;
+        prev = head;
         head = head->next;
+        offset = 0;
     }
     return written;
 }
