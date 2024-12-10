@@ -9,6 +9,7 @@ fi
 make -C limine
 
 echo "Building kernel..."
+echo "#define COMMIT \"$(git rev-parse --short HEAD)\"" > kernel/include/version.h
 make -C kernel
 
 echo "Setting up disk image..."

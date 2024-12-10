@@ -1,3 +1,4 @@
+#include <version.h>
 #include <status.h>
 #include <fs/ustar.h>
 #include <mem/slab.h>
@@ -70,6 +71,9 @@ void ls(const char* path) {
     }
     idrop(dir);
 }
+void print_version() {
+    kprintln("This copy of Pangolin is built from commit " COMMIT " at " __TIME__ ", " __DATE__);
+}
 void _start() {
     init_serial();
     init_framebuffer();
@@ -82,6 +86,7 @@ void _start() {
     init_vfs();
     init_scheduler();
     unpack_ustar();
+    print_version();
     asm volatile("cli");
     for (;;) asm volatile("hlt");
 }
