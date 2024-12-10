@@ -37,6 +37,8 @@ static void create_system_segment_descriptor(uint64_t *GDT, uint8_t idx, uint64_
     GDT[idx + 1] = base4;
 }
 
+extern void reload_gdt();
+
 // TODO: Add an option for the GDT to be allocated on the physical heap.
 __attribute__((noinline))
 void init_GDT() {
@@ -49,17 +51,6 @@ void init_GDT() {
         .size = (sizeof(uint64_t) * 5) - 1,
         .offset = (uint64_t) &kernel.GDT
     };
-    // inline assembly because when has that ever been a dumb idea :P
-    asm("lgdt (%0)" : : "r" (&kernel.gdtr));  
-    asm volatile("push $0x08; \
-              lea .reload_CS(%%rip), %%rax; \
-              push %%rax; \
-              retfq; \
-              .reload_CS: \
-              mov $0x10, %%ax; \
-              mov %%ax, %%ds; \
-              mov %%ax, %%es; \
-              mov %%ax, %%fs; \
-              mov %%ax, %%gs; \
-              mov %%ax, %%ss" : : : "eax", "rax");
+    asm volatile("lgdt (%0)" : : "r" (&kernel.gdtr));
+    reload_gdt();
 }
