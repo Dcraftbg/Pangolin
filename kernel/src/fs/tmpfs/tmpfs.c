@@ -195,6 +195,30 @@ static status_t tmpfs_schedule_get_dir_entries(Inode* dir, DirEntry* entries, of
     fsfuture_instant(future, dir->superblock, tmpfs_get_dir_entries(dir, entries, offset, count));
     return 0;
 }
+static status_t tmpfs_read (Inode* file, void* data, off_t offset, size_t size) {
+    TmpfsInode* inode = file->priv;
+    if(file->kind != INODE_FILE) return -INVALID_KIND;
+    if((size_t)offset > inode->size) return -INVALID_OFFSET;
+    if((size_t)offset == inode->size) return -REACHED_EOF;
+    TmpfsData* head = inode->data;
+    while(head && (size_t)offset >= DENTS_PER_BLOCK) {
+        offset -= DENTS_PER_BLOCK;
+        head = head->next;
+    }
+    if(!head) return -FILE_CORRUPTION;
+    size_t left = inode->size-offset;
+    if(size > left) size=left;
+    size_t read = 0;
+    while(head && read < size) {
+        left = size-read;
+        if(left > BYTES_PER_BLOCK) left = BYTES_PER_BLOCK;
+        memcpy(data, head->data+offset, left);
+        read += left;
+        head = head->next;
+        offset = 0;
+    }
+    return read;
+}
 static status_t tmpfs_write(Inode* file, const void* data, off_t offset, size_t size) {
     TmpfsInode* inode = file->priv;
     if(inode->kind != INODE_FILE) return -INVALID_KIND;
@@ -223,6 +247,10 @@ static status_t tmpfs_write(Inode* file, const void* data, off_t offset, size_t 
     }
     return written;
 }
+static status_t tmpfs_schedule_read(Inode* inode, void* data, off_t offset, size_t size, FsFuture* future) {
+    fsfuture_instant(future, inode->superblock, tmpfs_read(inode, data, offset, size));
+    return 0;
+}
 static status_t tmpfs_schedule_write(Inode* inode, const void* data, off_t offset, size_t size, FsFuture* future) {
     fsfuture_instant(future, inode->superblock, tmpfs_write(inode, data, offset, size));
     return 0;
@@ -233,6 +261,7 @@ static InodeOps tmpfs_inode_ops = {
     .create                   = tmpfs_create,
     .mkdir                    = tmpfs_mkdir,
     .schedule_write           = tmpfs_schedule_write,
+    .schedule_read            = tmpfs_schedule_read,
     .find                     = tmpfs_find,
     .schedule_get_dir_entries = tmpfs_schedule_get_dir_entries,
 };
