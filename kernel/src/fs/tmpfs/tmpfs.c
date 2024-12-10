@@ -5,7 +5,8 @@ struct TmpfsData {
     TmpfsData* next;
     char data[];
 };
-#define DENTS_PER_BLOCK ((PAGE_SIZE-sizeof(TmpfsData))/sizeof(TmpfsDirEntry*))
+#define BYTES_PER_BLOCK (PAGE_SIZE-sizeof(TmpfsData))
+#define DENTS_PER_BLOCK (BYTES_PER_BLOCK/sizeof(TmpfsDirEntry*))
 typedef struct {
     size_t      size;
     inodekind_t kind;
@@ -162,7 +163,7 @@ static status_t tmpfs_find(Inode* dir, const char* name, size_t namelen, DirEntr
     }
     return -NOT_FOUND;
 }
-static status_t tmpfs_schedule_get_dir_entries(Inode* dir, DirEntry* entries, off_t offset, size_t count, FsFuture* future) {
+static status_t tmpfs_get_dir_entries(Inode* dir, DirEntry* entries, off_t offset, size_t count) {
     TmpfsInode* inode = dir->priv;
     if(dir->kind != INODE_DIR) return -INVALID_KIND;
     if((size_t)offset > inode->size) return -INVALID_OFFSET;
@@ -188,7 +189,42 @@ static status_t tmpfs_schedule_get_dir_entries(Inode* dir, DirEntry* entries, of
         head = head->next;
         offset = 0;
     }
-    fsfuture_instant(future, dir->superblock, read);
+    return read;
+}
+static status_t tmpfs_schedule_get_dir_entries(Inode* dir, DirEntry* entries, off_t offset, size_t count, FsFuture* future) {
+    fsfuture_instant(future, dir->superblock, tmpfs_get_dir_entries(dir, entries, offset, count));
+    return 0;
+}
+static status_t tmpfs_write(Inode* file, const void* data, off_t offset, size_t size) {
+    TmpfsInode* inode = file->priv;
+    if(inode->kind != INODE_FILE) return -INVALID_KIND;
+    if((size_t)offset > inode->size) return -INVALID_OFFSET;
+    TmpfsData *head = inode->data, *prev=(TmpfsData*)(&inode->data);
+    while(head && (size_t)offset >= BYTES_PER_BLOCK) {
+        offset -= BYTES_PER_BLOCK;
+        prev = head;
+        head = head->next;
+    }
+    if(!head && offset > 0) return -FILE_CORRUPTION;
+    size_t written = 0;
+    const uint8_t* bytes = data;
+    while(written < size) {
+        size_t to_write = size-written;
+        if(to_write > BYTES_PER_BLOCK) to_write = BYTES_PER_BLOCK;
+        if(!head) {
+            prev->next = datablock_new();
+            if(!prev->next) return written;
+            head = prev->next;
+            inode->size += to_write;
+        }
+        memcpy(head->data, bytes+written, to_write);
+        written += to_write;
+        head = head->next;
+    }
+    return written;
+}
+static status_t tmpfs_schedule_write(Inode* inode, const void* data, off_t offset, size_t size, FsFuture* future) {
+    fsfuture_instant(future, inode->superblock, tmpfs_write(inode, data, offset, size));
     return 0;
 }
 
@@ -196,6 +232,7 @@ static status_t tmpfs_schedule_get_dir_entries(Inode* dir, DirEntry* entries, of
 static InodeOps tmpfs_inode_ops = {
     .create                   = tmpfs_create,
     .mkdir                    = tmpfs_mkdir,
+    .schedule_write           = tmpfs_schedule_write,
     .find                     = tmpfs_find,
     .schedule_get_dir_entries = tmpfs_schedule_get_dir_entries,
 };

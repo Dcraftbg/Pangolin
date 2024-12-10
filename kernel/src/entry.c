@@ -36,13 +36,13 @@ void ls(const char* path) {
     kprint("ls %s\n", path);
     for(;;) {
         if((e=inode_schedule_get_dir_entries(dir, &entry, offset, 1, &future)) < 0) {
-            if(e==-REACHED_EOF) break;
             kprint("Failed to schedule get_dir_entries: %d\n", (int)e);
             idrop(dir);
             return;
         }
         while((e=future.complete(&future)) == (-PENDING));
         if(e < 0) {
+            if(e==-REACHED_EOF) break;
             kprint("Failed to complete future: %d\n", (int)e);
             idrop(dir);
             return;
