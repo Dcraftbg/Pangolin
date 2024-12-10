@@ -14,7 +14,7 @@ typedef struct {
     // You can just place it on the stack.
     // Its not necessary
     GDTR        gdtr;
-    uint64_t    GDT[5];
+    uint64_t *GDT;
     // TODO: Remove this entirely.
     // You can just place it on the stack.
     // Its not necessary

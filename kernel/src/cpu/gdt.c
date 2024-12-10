@@ -1,3 +1,4 @@
+#include <kprint.h>
 #include <cpu/gdt.h>
 #include <memory.h>
 #include <kernel.h>
@@ -39,9 +40,9 @@ static void create_system_segment_descriptor(uint64_t *GDT, uint8_t idx, uint64_
 
 extern void reload_gdt();
 
-// TODO: Add an option for the GDT to be allocated on the physical heap.
 __attribute__((noinline))
 void init_GDT() {
+    kernel.GDT = (uint64_t*) (kernel_alloc_phys_page() + kernel.hhdm);
     kernel.GDT[0] = create_gdt_entry(0, 0, 0, 0); // null
     kernel.GDT[1] = create_gdt_entry(0, 0, 0x9A, 0x2); // kernel code
     kernel.GDT[2] = create_gdt_entry(0, 0, 0x92, 0); // kernel data
@@ -49,7 +50,7 @@ void init_GDT() {
     kernel.GDT[4] = create_gdt_entry(0, 0, 0xF2, 0); // user data
     kernel.gdtr = (GDTR) {
         .size = (sizeof(uint64_t) * 5) - 1,
-        .offset = (uint64_t) &kernel.GDT
+        .offset = (uint64_t) kernel.GDT
     };
     asm volatile("lgdt (%0)" : : "r" (&kernel.gdtr));
     reload_gdt();
