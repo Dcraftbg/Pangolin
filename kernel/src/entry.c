@@ -1,3 +1,4 @@
+#include <pic.h>
 #include <cpu.h>
 #include <version.h>
 #include <fs/ustar.h>
@@ -86,6 +87,7 @@ void _start() {
     init_vfs();
     init_scheduler();
     unpack_ustar();
+    init_pic();
     print_version();
     HALT_DEVICE();
 }
