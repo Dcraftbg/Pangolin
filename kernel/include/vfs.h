@@ -81,7 +81,14 @@ static status_t inode_write(Inode* inode, const void* data, off_t offset, size_t
     while((e=future.complete(&future)) == -PENDING);
     return e;
 }
-status_t inode_schedule_read (Inode* inode, void* data      , off_t offset, size_t size, FsFuture* future);
+status_t inode_schedule_read(Inode* inode, void* data      , off_t offset, size_t size, FsFuture* future);
+static status_t inode_read(Inode* inode, void* data, off_t offset, size_t size) {
+    status_t e;
+    FsFuture future;
+    if((e=inode_schedule_read(inode, data, offset, size, &future)) < 0) return e;
+    while((e=future.complete(&future)) == -PENDING);
+    return e;
+}
 status_t inode_create(Inode* dir, const char* name, size_t namelen);
 status_t inode_mkdir (Inode* dir, const char* name, size_t namelen);
 status_t inode_find(Inode* dir, const char* name, size_t namelen, DirEntry* direntry);
