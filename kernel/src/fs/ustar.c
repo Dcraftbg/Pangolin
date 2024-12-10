@@ -24,7 +24,6 @@ static status_t write_exact(Inode* file, const void* data, size_t size) {
     return size;
 }
 
-// TODO: Boundary checks
 void unpack_ustar() {
     status_t e;
     char *at = (char*) boot_get_initrd();
@@ -33,7 +32,10 @@ void unpack_ustar() {
         char *filename = at + FILENAME_OFF;
         bool is_dir = (*(at + TYPE_OFF) & 0b111) == 5;
         char *label = (is_dir) ? "Directory" : "File";
-        memmove(filename + 1, filename, strlen(filename));
+        size_t filename_len = strlen(filename);
+        if (filename_len > 98) // not enough space to prepend `/`
+            kpanic("Initial ramdisk filename is too long: not enough space to prepend \"/\".\n");
+        memmove(filename + 1, filename, filename_len);
         filename[0] = '/';
         kprint("%s found with name \"%s\", of size %zu bytes.\n", label, filename, size);
         if (is_dir) {
