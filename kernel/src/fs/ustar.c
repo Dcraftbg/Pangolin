@@ -25,7 +25,6 @@ static status_t write_exact(Inode* file, const void* data, size_t size) {
 }
 
 // TODO: Boundary checks
-
 void unpack_ustar() {
     status_t e;
     char *at = (char*) boot_get_initrd();

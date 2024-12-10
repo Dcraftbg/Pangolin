@@ -169,13 +169,11 @@ status_t init_vfs() {
     FileSystem* rootfs = get_rootfs();
     status_t e;
     if((e=rootfs->init(rootfs)) < 0) {
-        // TODO: string error reporting
-        kprint("ERROR: Failed to initialise rootfs: %d\n", (int)e);
+        kprint("ERROR: Failed to initialise rootfs: %d (%s)\n", (int)e, status_str(e));
         return e;
     }
     if((e=rootfs->mount(rootfs, &kernel.root_superblock, NULL)) < 0) {
-        // TODO: string error reporting
-        kprint("ERROR: Failed to mount rootfs: %d\n", (int)e);
+        kprint("ERROR: Failed to mount rootfs: %d (%s)\n", (int)e, status_str(e));
         return e;
     }
     kprint("SUCCESS: Initialised rootfs\n");
