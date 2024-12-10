@@ -16,5 +16,5 @@ enum {
     NAME_TOO_LONG,
     BUF_TOO_SMALL
 };
-// TODO: Status map to convert status to string
-// TODO: Map to convert status to errno
+
+const char *status_str(status_t status);
