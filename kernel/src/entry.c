@@ -1,3 +1,4 @@
+#include <pit.h>
 #include <pic.h>
 #include <cpu.h>
 #include <version.h>
@@ -88,6 +89,7 @@ void _start() {
     init_scheduler();
     unpack_ustar();
     init_pic();
+    init_pit();
     print_version();
     HALT_DEVICE();
 }
