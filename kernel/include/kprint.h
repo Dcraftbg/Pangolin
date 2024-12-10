@@ -10,3 +10,4 @@ static void kprint(const char* fmt, ...) {
     kprint_va(fmt, args);
     va_end(args);
 }
+#define kprintln(...) (kprint(__VA_ARGS__), kprint("\n"))
