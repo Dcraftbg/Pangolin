@@ -1,6 +1,7 @@
 #include <bootutils.h>
 #include <limine.h>
 #include <kpanic.h>
+#include <kprint.h>
 
 static const char* boot_memregion_kind_map[BOOT_MEMREGION_TYPE_COUNT] = {
     [BOOT_MEMREGION_USABLE]                 = "Usable",
@@ -63,13 +64,17 @@ uintptr_t boot_get_hhdm() {
     if(!limine_hhdm_request.response) kpanic("(boot:limine) Missing hhdm response");
     return limine_hhdm_request.response->offset;
 }
-uintptr_t boot_get_initrd() {
-    if(!initrd_request.response)
-        kpanic("(boot:limine) Did not recieve initial ramdisk response from bootloader.");
+void* boot_get_initrd() {
+    if(!initrd_request.response) {
+        kprint("WARN: (boot:limine) Did not recieve initial ramdisk response from bootloader.\n");
+        return NULL;
+    }
     struct limine_file *modules = *(initrd_request.response->modules);
-    if (initrd_request.response->module_count < 1)
-        kpanic("(boot:limine) Less than one module provided by bootloader, could not get initial ramdisk.");
-    return (uintptr_t) modules->address;
+    if (initrd_request.response->module_count < 1) {
+        kprint("WARN: (boot:limine) Less than one module provided by bootloader, could not get initial ramdisk.\n");
+        return NULL;
+    }
+    return modules->address;
 }
 Framebuffer boot_get_framebuffer() {
     if(!limine_framebuffer_request.response) kpanic("(boot:limine) Missing framebuffer response");

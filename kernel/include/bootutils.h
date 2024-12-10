@@ -39,4 +39,4 @@ typedef struct {
 
 void kernel_bootpair(BootAddrPair* pair);
 Framebuffer boot_get_framebuffer();
-uintptr_t boot_get_initrd();
+void* boot_get_initrd();
