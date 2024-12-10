@@ -61,5 +61,5 @@ void unpack_ustar() {
         }
         at += (((size + 511) / 512) + 1) * 512;
     }
-    kprint("Unpack USTAR.\n");
+    kprint("Unpacked initial ramdisk onto tmpfs.\n");
 }
