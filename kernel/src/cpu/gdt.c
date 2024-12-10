@@ -48,10 +48,10 @@ void init_GDT() {
     kernel.GDT[2] = create_gdt_entry(0, 0, 0x92, 0); // kernel data
     kernel.GDT[3] = create_gdt_entry(0, 0, 0xFA, 0x2); // user code
     kernel.GDT[4] = create_gdt_entry(0, 0, 0xF2, 0); // user data
-    kernel.gdtr = (GDTR) {
+    GDTR gdtr = (GDTR) {
         .size = (sizeof(uint64_t) * 5) - 1,
         .offset = (uint64_t) kernel.GDT
     };
-    asm volatile("lgdt (%0)" : : "r" (&kernel.gdtr));
+    asm volatile("lgdt (%0)" : : "r" (&gdtr));
     reload_gdt();
 }

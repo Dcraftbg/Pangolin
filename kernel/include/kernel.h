@@ -10,10 +10,6 @@
 typedef struct {
     PList       plist;
     uintptr_t   hhdm;
-    // TODO: Remove this entirely.
-    // You can just place it on the stack.
-    // Its not necessary
-    GDTR        gdtr;
     uint64_t *GDT;
     // TODO: Remove this entirely.
     // You can just place it on the stack.
