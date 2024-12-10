@@ -77,8 +77,12 @@ void* boot_get_initrd() {
     return modules->address;
 }
 Framebuffer boot_get_framebuffer() {
-    if(!limine_framebuffer_request.response) kpanic("(boot:limine) Missing framebuffer response");
+    if(!limine_framebuffer_request.response) {
+        kprint("(boot:limine) Missing framebuffer response. Outputting through serial only.");
+        return (Framebuffer) {0};
+    }
     return (Framebuffer) {
+        .is_valid      = true,
         .addr          = (*limine_framebuffer_request.response->framebuffers)->address,
         .width         = (*limine_framebuffer_request.response->framebuffers)->width,
         .height        = (*limine_framebuffer_request.response->framebuffers)->height,

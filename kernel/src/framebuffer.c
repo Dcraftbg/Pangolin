@@ -67,6 +67,7 @@ void newline() {
 }
 
 void write_framebuffer_char(char ch) {
+    if (!kernel.framebuffer.is_valid) return;
     if (kernel.char_y >= kernel.framebuffer.height) {
         kernel.char_x = 0;
         kernel.char_y = 0;

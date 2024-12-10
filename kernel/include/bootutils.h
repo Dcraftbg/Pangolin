@@ -14,6 +14,7 @@ enum {
 };
 
 typedef struct {
+    bool is_valid;
     void *addr;
     uint64_t width;
     uint64_t height;
