@@ -2,19 +2,28 @@
 #include <mem/slab.h>
 #include <stdint.h>
 #include <list.h>
+#include <vfs.h>
+
+#define MAX_RESOURCES   20 // TODO: Dynamically allocate this.
+#define TASK_PRESENT    0b001
+#define TASK_RUNNING    0b010
+#define TASK_FIRST_EXEC 0b100
 
 typedef uint64_t task_id_t;
+typedef uint8_t task_flags_t;
+typedef struct Task Task;
 
-typedef struct {
-    struct list list;
-    task_id_t tid;
-    /* TODO:
-     * More fields will need to be added such as pml4 address etc.
-     * While the core scheduler is being developed, that's not really needed, but it'll definitely
-     * be required soon enough.
-     * When we get around to doing SMP, there will need to be a new "Process" structure. This is not done yet.
-     */
-} Task;
+// TODO: Once we get around to SMP, a new Process structure will be needed.
+
+struct Task {
+    struct list   list;
+    task_id_t     tid;
+    uint64_t     *pml4;
+    void         *entry;
+    Inode        *resources[MAX_RESOURCES];
+    Task         *parent;
+    task_flags_t  flags;
+};
 
 typedef struct {
     struct list tasklist;
@@ -26,5 +35,5 @@ typedef struct {
 } SchedulerQueue;
 
 void init_scheduler();
-Task *task_add();
+Task *task_add(uint64_t *pml4, void *entry, Task *parent, task_flags_t flags);
 Task *task_select();
