@@ -7,6 +7,7 @@
 #include <string.h>
 #include <kpanic.h>
 #include <kprint.h>
+#include <utils.h>
 
 #define PAGE_MASK 0xFFFF000000000000
 bool page_mmap(page_t pml4_addr, uintptr_t phys, uintptr_t virt, size_t pages_count, pageflags_t flags) {
@@ -154,19 +155,20 @@ void init_paging() {
     BootMemRegion region;
     for(size_t i = 0; i < boot_get_memregion_count(); ++i) {
         boot_get_memregion_at(&region, i);
+        pageflags_t flags = KERNEL_PFLAG_PRESENT | KERNEL_PFLAG_WRITE | KERNEL_PFLAG_EXEC_DISABLE;
         switch(region.kind) {
+        case BOOT_MEMREGION_FRAMEBUFFER:
+            flags |= KERNEL_PFLAG_WRITE_COMBINE;
+            FALLTHROUGH 
         case BOOT_MEMREGION_USABLE:
         case BOOT_MEMREGION_KERNEL_AND_MODULES:
         case BOOT_MEMREGION_BOOTLOADER_RECLAIMABLE:
-        case BOOT_MEMREGION_FRAMEBUFFER:
         case BOOT_MEMREGION_ACPI_RECLAIMABLE: {
             paddr_t   phys = page_align_down(region.address);
             uintptr_t virt = page_align_down(region.address + kernel.hhdm);
             size_t   pages = region.size/PAGE_SIZE;
             kprint("%zu> mapping %p -> %p (%zu pages)\n", i, (void*)phys, (void*)virt, pages);
-            if(!page_mmap(kernel.pml4, phys, virt, pages,
-                    KERNEL_PFLAG_PRESENT | KERNEL_PFLAG_WRITE | KERNEL_PFLAG_EXEC_DISABLE
-                )) {
+            if(!page_mmap(kernel.pml4, phys, virt, pages, flags)) {
                 kpanic("Failed to map %zu of type %s. (%p -> %p) %zu pages", i, boot_memregion_kind_str(region.kind), phys, virt, pages);
             }
         } break;
