@@ -14,7 +14,8 @@ enum {
     REACHED_EOF,
     FILE_CORRUPTION,
     NAME_TOO_LONG,
-    BUF_TOO_SMALL
+    BUF_TOO_SMALL,
+    STATUS_COUNT
 };
 
 const char *status_str(status_t status);
