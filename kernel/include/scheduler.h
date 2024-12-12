@@ -35,5 +35,5 @@ typedef struct {
 } SchedulerQueue;
 
 void init_scheduler();
-Task *task_add(uint64_t *pml4, void *entry, Task *parent, task_flags_t flags);
+Task *task_add();
 Task *task_select();
