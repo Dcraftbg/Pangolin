@@ -1,3 +1,4 @@
+#include <exec.h>
 #include <pit.h>
 #include <pic.h>
 #include <cpu.h>
