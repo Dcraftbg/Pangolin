@@ -63,7 +63,7 @@ void scroll_line() {
 void newline() {
     kernel.char_x = 0;
     kernel.char_y += 16;
-    if (kernel.char_y >= kernel.framebuffer.height) scroll_line();
+    if (kernel.char_y >= kernel.framebuffer.height - 16) scroll_line();
 }
 
 void write_framebuffer_char(char ch) {
