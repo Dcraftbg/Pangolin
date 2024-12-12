@@ -1,3 +1,4 @@
+#include <string.h>
 #include <font.h>
 #include <stdint.h>
 #include <framebuffer.h>
@@ -42,17 +43,14 @@ void draw_char(char ch, uint64_t x_coord, uint64_t y_coord, uint32_t colour) {
 }
 
 void scroll_pixels(size_t num_pix) {
-    for (size_t y = 0; y < kernel.framebuffer.height; y++) {
-        for (size_t x = 0; x < kernel.framebuffer.width; x++) {
-            if (y >= (kernel.framebuffer.height - num_pix)) {
-                draw_pixel(x, y, BG_COLOUR);
-                continue;
-            }
-            uint32_t *location = (uint32_t*)(((uint8_t*) kernel.framebuffer.addr) + (y + num_pix) * kernel.framebuffer.pitch);
-            uint32_t above_pixel_value = location[x];
-            draw_pixel(x, y, above_pixel_value);
-        }
+    size_t max_height = kernel.framebuffer.height - num_pix;
+    size_t fb_width_bytes = kernel.framebuffer.width * kernel.framebuffer.bytes_per_pix;
+    for (size_t y = 0; y < max_height; y++) {
+            uint32_t *old_row_loc = (uint32_t*)(((uint8_t*) kernel.framebuffer.addr) + (y + num_pix) * kernel.framebuffer.pitch);
+            uint32_t *new_row_loc = (uint32_t*)(((uint8_t*) kernel.framebuffer.addr) + y * kernel.framebuffer.pitch);
+            memcpy(new_row_loc, old_row_loc, fb_width_bytes);
     }
+    fill_rect(0, max_height, kernel.framebuffer.width, num_pix, BG_COLOUR);
 }
 
 void scroll_line() {
