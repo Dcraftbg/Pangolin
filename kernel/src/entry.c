@@ -91,6 +91,7 @@ void _start() {
     unpack_ustar();
     init_pic();
     init_pit();
+    execve("/bin/test");
     print_version();
     HALT_DEVICE();
 }

@@ -15,7 +15,7 @@ make -C kernel
 echo "Building userspace components..."
 # This is a pretty bad way of doing this and it'll be improved.
 # It's just VERY temporary. TODO
-mkdir initrd/bin
+mkdir -p initrd/bin
 nasm -f elf64 userspace/test.asm -o obj/usertest.o -g
 gcc -o initrd/bin/test obj/usertest.o -nostdlib -ffreestanding -g
 

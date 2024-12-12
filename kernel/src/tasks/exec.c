@@ -25,7 +25,8 @@ status_t execve(const char *filename) {
         return e;
     }
     elf_file_header file_header;
-    if ((e = inode_read(f, &file_header, 0, sizeof(elf_file_header))-1) < 0) {
+    if ((e = inode_read(f, &file_header, 0, sizeof(elf_file_header)) - 1) < 0) {
+        elf_read_err:
         kprint("Failed to read from file \"%s\" with status code %zu\n", filename, e);
         idrop(f);
         return e;
@@ -35,7 +36,18 @@ status_t execve(const char *filename) {
         idrop(f);
         return e;
     }
-    kprint("Valid ELF file.\n");
+    off_t offset = file_header.program_header_offset;
+    for (size_t i = 0; i < file_header.program_header_entry_count; i++) {
+        elf_program_header program_header;
+        if ((e = inode_read(f, &program_header, offset, sizeof(elf_file_header)) - 1) < 0)
+            goto elf_read_err;
+        if (program_header.type == 1) {
+            kprint("Found loadable section of offset %zu, size in file %zu, vaddr %p\n",
+                    program_header.offset, program_header.size_in_file, (void*) program_header.virtual_address);
+        }
+
+        offset += file_header.program_header_entry_size;
+    }
     idrop(f);
     return 0;
 }
