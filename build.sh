@@ -12,13 +12,20 @@ echo "Building kernel..."
 echo "#define COMMIT \"$(git rev-parse --short HEAD)\"" > kernel/include/version.h
 make -C kernel
 
+echo "Building userspace components..."
+# This is a pretty bad way of doing this and it'll be improved.
+# It's just VERY temporary. TODO
+mkdir initrd/bin
+nasm -f elf64 userspace/test.asm -o obj/usertest.o -g
+gcc -o initrd/bin/test obj/usertest.o -nostdlib -ffreestanding -g
+
 echo "Setting up disk image..."
 mkdir -p sysroot
 mkdir -p sysroot/boot
 cp -v bin/pangolin sysroot/boot/
 
 echo "Setting up initial ramdisk archive..."
-tar --create --file=sysroot/boot/initrd --format=ustar -C initrd home
+tar --create --file=sysroot/boot/initrd --format=ustar -C initrd home bin
 
 echo "Setting up bootloader..."
 mkdir -p sysroot/boot/limine
