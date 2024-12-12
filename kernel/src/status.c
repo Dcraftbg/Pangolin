@@ -17,7 +17,6 @@ static const char *status_strings[STATUS_COUNT] = {
 };
 
 const char *status_str(status_t status) {
-    if (!status) return "Success";
     status = -status;
     if ((uint64_t) status >= (sizeof(status_strings) / sizeof(status_strings[0]))) return "Invalid error";
     return status_strings[status];
