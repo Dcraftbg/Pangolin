@@ -4,6 +4,7 @@
 #include <stdint.h>
 #include <stdbool.h>
 #include <stddef.h>
+#include <status.h>
 // TODO: In the future here is where paging code will also go
 #define PAGE_SIZE 4096
 #define KERNEL_PAGE_ENTRIES 512
@@ -39,6 +40,7 @@ typedef uint64_t pageflags_t;
 bool page_mmap(page_t pml4_addr, uintptr_t phys, uintptr_t virt, size_t pages_count, pageflags_t flags);
 bool page_alloc(page_t pml4_addr, uintptr_t virt, size_t pages_count, pageflags_t flags);
 void init_paging(); // Called to initialse
+status_t init_task_paging(page_t *new_pml4);
 
 #define kernel_switch_vtable() \
     do {\

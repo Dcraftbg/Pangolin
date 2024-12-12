@@ -1,3 +1,6 @@
+#include <kernel.h>
+#include <memory.h>
+#include <mem/page.h>
 #include <string.h>
 #include <vfs.h>
 #include <kprint.h>
@@ -28,13 +31,18 @@ status_t execve(const char *filename) {
     if ((e = inode_read(f, &file_header, 0, sizeof(elf_file_header)) - 1) < 0) {
         elf_read_err:
         kprint("Failed to read from file \"%s\" with status code %zu\n", filename, e);
+        elf_generic_err:
         idrop(f);
         return e;
     }
     if ((e = verify_elf(&file_header)) < 0) {
         kprint("Invalid ELF file.\n");
-        idrop(f);
-        return e;
+        goto elf_generic_err;
+    }
+    page_t task_pml4;
+    if ((e = init_task_paging(&task_pml4)) < 0) {
+        kprint("Couldn't create page tree for new task.\n");
+        goto elf_generic_err;
     }
     off_t offset = file_header.program_header_offset;
     for (size_t i = 0; i < file_header.program_header_entry_count; i++) {
@@ -42,10 +50,10 @@ status_t execve(const char *filename) {
         if ((e = inode_read(f, &program_header, offset, sizeof(elf_file_header)) - 1) < 0)
             goto elf_read_err;
         if (program_header.type == 1) {
-            kprint("Found loadable section of offset %zu, size in file %zu, vaddr %p\n",
-                    program_header.offset, program_header.size_in_file, (void*) program_header.virtual_address);
+            paddr_t header_data_phys = kernel_alloc_phys_pages(bytes_to_pages(page_align_up(program_header.size_in_memory)));
+            if ((e = inode_read(f, (void*) (header_data_phys + kernel.hhdm), program_header.offset, program_header.size_in_file)) < 0)
+                goto elf_read_err;
         }
-
         offset += file_header.program_header_entry_size;
     }
     idrop(f);
