@@ -5,3 +5,4 @@ obj/
 sysroot/
 *.iso
 *.o
+kernel/include/version.h
