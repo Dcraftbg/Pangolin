@@ -57,6 +57,11 @@ status_t execve(const char *filename) {
         }
         offset += file_header.program_header_entry_size;
     }
+    if (!page_alloc(task_pml4, USER_STACK_ADDR, USER_STACK_PAGES, KERNEL_PFLAG_WRITE | KERNEL_PFLAG_USER | KERNEL_PFLAG_PRESENT)) {
+        kprint("Couldn't allocate and map new user stack.\n");
+        e = -NOT_ENOUGH_MEMORY;
+        goto elf_generic_err;
+    }
     Task *new_task   = task_add();
     new_task->pml4   = task_pml4;
     new_task->entry  = (void*) file_header.entry;
