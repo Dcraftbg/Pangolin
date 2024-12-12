@@ -1,4 +1,5 @@
 #pragma once
+#include <mem/page.h>
 #include <mem/slab.h>
 #include <stdint.h>
 #include <list.h>
@@ -18,7 +19,7 @@ typedef struct Task Task;
 struct Task {
     struct list   list;
     task_id_t     tid;
-    uint64_t     *pml4;
+    page_t        pml4;
     void         *entry;
     Inode        *resources[MAX_RESOURCES];
     Task         *parent;

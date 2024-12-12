@@ -1,3 +1,4 @@
+#include <scheduler.h>
 #include <kernel.h>
 #include <memory.h>
 #include <mem/page.h>
@@ -56,6 +57,12 @@ status_t execve(const char *filename) {
         }
         offset += file_header.program_header_entry_size;
     }
+    Task *new_task   = task_add();
+    new_task->pml4   = task_pml4;
+    new_task->entry  = (void*) file_header.entry;
+    new_task->parent = kernel.scheduler.current_task;
+    new_task->flags  = TASK_FIRST_EXEC | TASK_PRESENT;
+    memcpy(new_task->resources, new_task->parent->resources, sizeof(new_task->resources));
     idrop(f);
     return 0;
 }
