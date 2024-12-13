@@ -1,0 +1,15 @@
+#pragma once
+#include <list.h>
+#include <stdint.h>
+#include <mem/page.h>
+
+typedef struct {
+    struct list list;
+    pageflags_t flags;
+    uintptr_t   addr;
+    size_t      num_pages;
+} Memregion;
+
+void init_memregion();
+// See the note in memregion.c
+Memregion *add_memregion(Memregion **list, uintptr_t addr, size_t num_pages, pageflags_t flags);

@@ -1,3 +1,4 @@
+#include <mem/memregion.h>
 #include <exec.h>
 #include <pit.h>
 #include <pic.h>
@@ -88,6 +89,7 @@ void _start() {
     kernel_switch_vtable();
     init_vfs();
     init_scheduler();
+    init_memregion();
     unpack_ustar();
     init_pic();
     init_pit();
