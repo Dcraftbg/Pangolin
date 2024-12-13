@@ -1,3 +1,5 @@
+#include <memory.h>
+#include <mem/page.h>
 #include <mem/memregion.h>
 #include <mem/slab.h>
 #include <kernel.h>
@@ -51,9 +53,16 @@ void delete_memregion_list(Memregion **list) {
  * memory space, but otherwise it should copy the data as well.
  */
 Memregion *memregion_clone(Memregion *original, page_t old_page_tree, page_t new_page_tree) {
-    (void) old_page_tree;
-    (void) new_page_tree;
-    // TODO: Implement this
+    if (original->flags & KERNEL_PFLAG_WRITE) {
+        // copy data and map
+        void *dest = kernel_alloc_pages(original->num_pages);
+        size_t bytes_to_copy = page_align_up(original->num_pages) / 4096;
+        read_vmem(old_page_tree, original->addr, dest, bytes_to_copy);
+        page_mmap(new_page_tree, (uint64_t) dest - kernel.hhdm, original->addr, original->num_pages, original->flags);
+    } else {
+        paddr_t phys = virt_to_phys(old_page_tree, original->addr);
+        page_mmap(new_page_tree, phys, original->addr, original->num_pages, original->flags);
+    }
     return original;
 }
 

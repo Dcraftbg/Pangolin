@@ -15,3 +15,4 @@ void init_memregion();
 Memregion *add_memregion(Memregion **list, uintptr_t addr, size_t num_pages, pageflags_t flags);
 void delete_memregion_list(Memregion **list);
 void delete_memregion(Memregion *element);
+Memregion *memregion_clone(Memregion *original, page_t old_page_tree, page_t new_page_tree);

@@ -43,6 +43,7 @@ void init_paging(); // Called to initialse
 status_t init_task_paging(page_t *new_pml4);
 paddr_t virt_to_phys(page_t pml4_addr, uint64_t virt_addr);
 void write_vmem(page_t pml4_addr, uintptr_t virt_addr, char *data, size_t len);
+void read_vmem(page_t pml4_addr, uintptr_t virt_addr, char *buffer, size_t len);
 
 #define kernel_switch_vtable() \
     do {\
