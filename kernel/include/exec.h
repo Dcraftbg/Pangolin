@@ -1,6 +1,8 @@
 #pragma once
 #include <status.h>
 
+#define ELF_FLAG_WRITABLE 1
+
 typedef struct {
     char id[16];
     uint16_t type;
