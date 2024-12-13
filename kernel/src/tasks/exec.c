@@ -40,11 +40,7 @@ status_t execve(const char *filename) {
         kprint("Invalid ELF file.\n");
         goto elf_generic_err;
     }
-    page_t task_pml4;
-    if ((e = init_task_paging(&task_pml4)) < 0) {
-        kprint("Couldn't create page tree for new task.\n");
-        goto elf_generic_err;
-    }
+    Task *current_task = kernel.scheduler.current_task;
     off_t offset = file_header.program_header_offset;
     for (size_t i = 0; i < file_header.program_header_entry_count; i++) {
         elf_program_header program_header;
@@ -57,7 +53,7 @@ status_t execve(const char *filename) {
             uint64_t flags = KERNEL_PFLAG_USER | KERNEL_PFLAG_PRESENT;
             if (!(program_header.flags & ELF_FLAG_WRITABLE))
                 flags |= KERNEL_PFLAG_WRITE;
-            if (!page_mmap(task_pml4, header_data_phys, program_header.virtual_address, bytes_to_pages(program_header.size_in_memory), flags)) {
+            if (!page_mmap(current_task->pml4, header_data_phys, program_header.virtual_address, bytes_to_pages(program_header.size_in_memory), flags)) {
                 kprint("Couldn't map section into new user task.\n");
                 e = -NOT_ENOUGH_MEMORY;
                 goto elf_generic_err;
@@ -65,13 +61,11 @@ status_t execve(const char *filename) {
         }
         offset += file_header.program_header_entry_size;
     }
-    if (!page_alloc(task_pml4, USER_STACK_ADDR, USER_STACK_PAGES, KERNEL_PFLAG_WRITE | KERNEL_PFLAG_USER | KERNEL_PFLAG_PRESENT)) {
+    if (!page_alloc(current_task->pml4, USER_STACK_ADDR, USER_STACK_PAGES, KERNEL_PFLAG_WRITE | KERNEL_PFLAG_USER | KERNEL_PFLAG_PRESENT)) {
         kprint("Couldn't allocate and map new user stack.\n");
         e = -NOT_ENOUGH_MEMORY;
         goto elf_generic_err;
     }
-    Task *current_task  = kernel.scheduler.current_task;
-    current_task->pml4  = task_pml4;
     current_task->entry = (void*) file_header.entry;
     current_task->flags = TASK_FIRST_EXEC | TASK_PRESENT;
     idrop(f);
