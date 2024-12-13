@@ -29,7 +29,7 @@ $(call USER_VARIABLE,KLDFLAGS,)
 
 # Internal C flags that should not be changed by the user.
 override KCFLAGS += \
-    -Wall \
+	-Wall \
     -Wextra \
 	-Werror\
 	-Wno-unused-function\
