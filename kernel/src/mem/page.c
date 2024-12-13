@@ -146,7 +146,7 @@ extern uint8_t section_const_data_end[];
 extern uint8_t section_mut_data_begin[];
 extern uint8_t section_mut_data_end[];
 
-void map_all_memory(page_t pml4) {
+void map_all_memory(page_t pml4, bool verbose) {
     BootMemRegion region;
     for(size_t i = 0; i < boot_get_memregion_count(); ++i) {
         boot_get_memregion_at(&region, i);
@@ -162,7 +162,8 @@ void map_all_memory(page_t pml4) {
             paddr_t   phys = page_align_down(region.address);
             uintptr_t virt = page_align_down(region.address + kernel.hhdm);
             size_t   pages = region.size/PAGE_SIZE;
-            kprint("%zu> mapping %p -> %p (%zu pages)\n", i, (void*)phys, (void*)virt, pages);
+            if (verbose)
+                kprint("%zu> mapping %p -> %p (%zu pages)\n", i, (void*)phys, (void*)virt, pages);
             if(!page_mmap(pml4, phys, virt, pages, flags)) {
                 kpanic("Failed to map %zu of type %s. (%p -> %p) %zu pages", i, boot_memregion_kind_str(region.kind), phys, virt, pages);
             }
@@ -177,7 +178,7 @@ void map_all_memory(page_t pml4) {
 status_t init_task_paging(page_t *new_pml4) {
     *new_pml4 = kernel_alloc_pages(1);
     memset((void*) *new_pml4, 0, PAGE_SIZE);
-    map_all_memory(*new_pml4);
+    map_all_memory(*new_pml4, false);
     return 0;
 }
 
@@ -187,7 +188,7 @@ void init_paging() {
     kernel.pml4 = kernel_alloc_pages(1);
     if(!kernel.pml4) kpanic("ERROR: Could not allocate page map. Ran out of memory");
     memset(kernel.pml4, 0, PAGE_SIZE);
-    map_all_memory(kernel.pml4);
+    map_all_memory(kernel.pml4, true);
     uintptr_t phys, virt;
     size_t len;
     phys = page_align_down(addr_resp.phys + (((uintptr_t)section_text_begin) - addr_resp.virt));
