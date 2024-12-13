@@ -24,3 +24,5 @@ typedef struct {
 } Kernel;
 
 extern Kernel kernel;
+
+void _start();
