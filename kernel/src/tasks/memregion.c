@@ -30,3 +30,13 @@ Memregion *add_memregion(Memregion **list, uintptr_t addr, size_t num_pages, pag
     new_memregion->flags     = flags;
     return new_memregion;
 }
+
+void delete_memregion_list(Memregion **list) {
+    for (struct list *iter = &(*list)->list; iter != iter->next;) {
+        iter = iter->next;
+        list_remove(iter);
+        slab_free(kernel.memregion_cache, (Memregion*) iter);
+    }
+    slab_free(kernel.memregion_cache, *list); // delete the final one as well
+    *list = 0;
+}
