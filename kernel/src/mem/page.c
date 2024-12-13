@@ -176,9 +176,8 @@ void map_all_memory(page_t pml4) {
 // NOTE: Mapping the actual executable is left to exec. This simply needs to initialise stuff.
 status_t init_task_paging(page_t *new_pml4) {
     *new_pml4 = kernel_alloc_pages(1);
+    memset((void*) *new_pml4, 0, PAGE_SIZE);
     map_all_memory(*new_pml4);
-    if(!page_alloc(*new_pml4, USER_STACK_ADDR, USER_STACK_PAGES, KERNEL_PFLAG_PRESENT | KERNEL_PFLAG_WRITE | KERNEL_PFLAG_USER))
-        return -NOT_ENOUGH_MEMORY;
     return 0;
 }
 

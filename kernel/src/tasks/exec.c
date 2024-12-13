@@ -54,6 +54,11 @@ status_t execve(const char *filename) {
             paddr_t header_data_phys = kernel_alloc_phys_pages(bytes_to_pages(page_align_up(program_header.size_in_memory)));
             if ((e = inode_read(f, (void*) (header_data_phys + kernel.hhdm), program_header.offset, program_header.size_in_file)) < 0)
                 goto elf_read_err;
+            if (!page_mmap(task_pml4, header_data_phys, program_header.virtual_address, bytes_to_pages(program_header.size_in_memory), KERNEL_PFLAG_WRITE | KERNEL_PFLAG_USER | KERNEL_PFLAG_PRESENT)) {
+                kprint("Couldn't map section into new user task.\n");
+                e = -NOT_ENOUGH_MEMORY;
+                goto elf_generic_err;
+            }
         }
         offset += file_header.program_header_entry_size;
     }

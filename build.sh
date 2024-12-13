@@ -17,7 +17,7 @@ echo "Building userspace components..."
 # It's just VERY temporary. TODO
 mkdir -p initrd/bin
 nasm -f elf64 userspace/test.asm -o obj/usertest.o -g
-gcc -o initrd/bin/test obj/usertest.o -nostdlib -ffreestanding -g
+gcc -o initrd/bin/test obj/usertest.o -nostdlib -ffreestanding -g -static
 
 echo "Setting up disk image..."
 mkdir -p sysroot
