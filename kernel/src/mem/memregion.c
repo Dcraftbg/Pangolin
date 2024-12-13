@@ -45,3 +45,19 @@ void delete_memregion_list(Memregion **list) {
     slab_free(kernel.memregion_cache, *list); // delete the final one as well
     *list = 0;
 }
+
+/* Copies a Memregion from an old page tree to a new page tree and returns the Memregion which can then be
+ * inserted into the list of the new task. If it's mapped as read-only, then it should simply map it into the new 
+ * memory space, but otherwise it should copy the data as well.
+ */
+Memregion *memregion_clone(Memregion *original, page_t old_page_tree, page_t new_page_tree) {
+    (void) old_page_tree;
+    (void) new_page_tree;
+    // TODO: Implement this
+    return original;
+}
+
+
+
+
+

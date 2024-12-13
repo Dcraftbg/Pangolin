@@ -41,6 +41,8 @@ bool page_mmap(page_t pml4_addr, uintptr_t phys, uintptr_t virt, size_t pages_co
 bool page_alloc(page_t pml4_addr, uintptr_t virt, size_t pages_count, pageflags_t flags);
 void init_paging(); // Called to initialse
 status_t init_task_paging(page_t *new_pml4);
+paddr_t virt_to_phys(page_t pml4_addr, uint64_t virt_addr);
+void write_vmem(page_t pml4_addr, uintptr_t virt_addr, char *data, size_t len);
 
 #define kernel_switch_vtable() \
     do {\
@@ -54,5 +56,3 @@ status_t init_task_paging(page_t *new_pml4);
         ); \
         kprint("Switched page tree.\n");\
     } while (0)
-
-

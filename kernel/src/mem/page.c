@@ -137,6 +137,79 @@ bool page_alloc(page_t pml4_addr, uintptr_t virt, size_t pages_count, pageflags_
     return pages_count == 0;
 }
 
+paddr_t virt_to_phys(page_t pml4_addr, uint64_t virt_addr) {
+    virt_addr &= ~PAGE_MASK;
+    uint64_t pml1 = (virt_addr >> 12) & 511;
+    uint64_t pml2 = (virt_addr >> (12 + 9)) & 511;
+    uint64_t pml3 = (virt_addr >> (12 + 18)) & 511;
+    uint64_t pml4 = (virt_addr >> (12 + 27)) & 511;
+    for (; pml4 < 512; pml4++) {
+        uint64_t *pml3_addr = NULL;
+        if (pml4_addr[pml4] == 0)
+            return 0;
+        else
+            pml3_addr = (uint64_t*)(page_align_down(pml4_addr[pml4]) + kernel.hhdm);
+
+        for (; pml3 < 512; pml3++) {
+            uint64_t *pml2_addr = NULL;
+            if (pml3_addr[pml3] == 0)
+                return 0;
+            else
+                pml2_addr = (uint64_t*)(page_align_down(pml3_addr[pml3]) + kernel.hhdm);
+
+            for (; pml2 < 512; pml2++) {
+                uint64_t *pml1_addr = NULL;
+                if (pml2_addr[pml2] == 0)
+                    return 0;
+                else
+                    pml1_addr = (uint64_t*)(page_align_down(pml2_addr[pml2]) + kernel.hhdm);
+                
+                if (pml1_addr[pml1] == 0)
+                    return 0;
+
+                return (uint64_t)(page_align_down(pml1_addr[pml1]) + (virt_addr - page_align_down(virt_addr)));
+            }
+            pml2 = 0;
+        }
+        pml3 = 0;
+    }
+    return 0;
+}
+
+void write_vmem(page_t pml4_addr, uintptr_t virt_addr, char *data, size_t len) {
+    while (len > 0) {
+        // get the address of this virtual address in kernel memory
+        uint64_t kernel_addr = virt_to_phys(pml4_addr, virt_addr);
+        if (!kernel_addr) {
+            kpanic("write_vmem: virtual address is not mapped! Address: %p\n"
+                   "         Cannot write to vmem. Halting.\n", virt_addr);
+        }
+        kernel_addr += kernel.hhdm;
+        uint64_t bytes_to_copy = (len < PAGE_SIZE) ? len : PAGE_SIZE;
+        memcpy((char*) kernel_addr, data, bytes_to_copy);
+        len -= bytes_to_copy;
+        virt_addr += bytes_to_copy;
+        data += bytes_to_copy;
+    }
+}
+
+void read_vmem(page_t pml4_addr, uintptr_t virt_addr, char *buffer, size_t len) {
+    while (len > 0) {
+        // get the address of this virtual address in kernel memory
+        uint64_t kernel_addr = virt_to_phys(pml4_addr, virt_addr);
+        if (!kernel_addr) {
+            kpanic("read_vmem: virtual address is not mapped! Address: %p\n"
+                   "         Cannot read from vmem. Halting.\n", virt_addr);
+        }
+        kernel_addr += kernel.hhdm;
+        uint64_t bytes_to_copy = (len < PAGE_SIZE) ? len : PAGE_SIZE;
+        memcpy(buffer, (char*) kernel_addr, bytes_to_copy);
+        len -= bytes_to_copy;
+        virt_addr += bytes_to_copy;
+        buffer += bytes_to_copy;
+    }
+}
+
 extern uint8_t section_text_begin[];
 extern uint8_t section_text_end[];
 
