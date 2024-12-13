@@ -67,12 +67,10 @@ status_t execve(const char *filename) {
         e = -NOT_ENOUGH_MEMORY;
         goto elf_generic_err;
     }
-    Task *new_task   = task_add();
-    new_task->pml4   = task_pml4;
-    new_task->entry  = (void*) file_header.entry;
-    new_task->parent = kernel.scheduler.current_task;
-    new_task->flags  = TASK_FIRST_EXEC | TASK_PRESENT;
-    memcpy(new_task->resources, new_task->parent->resources, sizeof(new_task->resources));
+    Task *current_task  = kernel.scheduler.current_task;
+    current_task->pml4  = task_pml4;
+    current_task->entry = (void*) file_header.entry;
+    current_task->flags = TASK_FIRST_EXEC | TASK_PRESENT;
     idrop(f);
     return 0;
 }
