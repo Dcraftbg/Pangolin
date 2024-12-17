@@ -53,13 +53,12 @@ status_t execve(const char *filename) {
             uint64_t flags = KERNEL_PFLAG_USER | KERNEL_PFLAG_PRESENT;
             if (!(program_header.flags & ELF_FLAG_WRITABLE))
                 flags |= KERNEL_PFLAG_WRITE;
-            size_t map_bytes = bytes_to_pages(program_header.size_in_memory);
-            if (!page_mmap(current_task->pml4, header_data_phys, program_header.virtual_address, map_bytes, flags)) {
+            if (!page_mmap(current_task->pml4, header_data_phys, program_header.virtual_address, bytes_to_pages(program_header.size_in_memory), flags)) {
                 kprint("Couldn't map section into new user task.\n");
                 e = -NOT_ENOUGH_MEMORY;
                 goto elf_generic_err;
             }
-            add_memregion(&current_task->memregion_list, program_header.virtual_address, map_bytes, flags);
+            add_memregion(&current_task->memregion_list, program_header.virtual_address, program_header.size_in_memory, flags);
         }
         offset += file_header.program_header_entry_size;
     }
