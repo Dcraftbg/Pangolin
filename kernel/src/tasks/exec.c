@@ -67,6 +67,7 @@ status_t execve(const char *filename) {
         e = -NOT_ENOUGH_MEMORY;
         goto elf_generic_err;
     }
+    add_memregion(&current_task->memregion_list, USER_STACK_ADDR, USER_STACK_PAGES, KERNEL_PFLAG_WRITE | KERNEL_PFLAG_USER | KERNEL_PFLAG_PRESENT);
     current_task->entry = (void*) file_header.entry;
     current_task->flags = TASK_FIRST_EXEC | TASK_PRESENT;
     idrop(f);
