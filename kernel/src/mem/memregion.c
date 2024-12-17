@@ -66,7 +66,10 @@ Memregion *memregion_clone(Memregion *original, page_t old_page_tree, page_t new
     return original;
 }
 
-
-
-
-
+Memregion *memregion_find(Memregion *list, uintptr_t addr) {
+    list_foreach(i, &list->list) {
+        if (((Memregion*) i)->addr == addr)
+            return (Memregion*) i;
+    }
+    return NULL;
+}
