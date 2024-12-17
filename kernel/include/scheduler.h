@@ -1,4 +1,5 @@
 #pragma once
+#include <mem/memregion.h>
 #include <mem/page.h>
 #include <mem/slab.h>
 #include <stdint.h>
@@ -20,6 +21,7 @@ struct Task {
     struct list   list;
     task_id_t     tid;
     page_t        pml4;
+    Memregion    *memregion_list;
     void         *entry;
     Inode        *resources[MAX_RESOURCES];
     Task         *parent;

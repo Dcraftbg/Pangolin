@@ -247,6 +247,32 @@ void map_all_memory(page_t pml4, bool verbose) {
 
 }
 
+void map_kernel(BootAddrPair addr_resp, page_t pml4) {
+    uintptr_t phys, virt;
+    size_t len;
+    phys = page_align_down(addr_resp.phys + (((uintptr_t)section_text_begin) - addr_resp.virt));
+    virt = page_align_down((uintptr_t)section_text_begin);
+    len  = (page_align_up((uintptr_t)section_text_end) - page_align_down((uintptr_t)section_text_begin))/PAGE_SIZE;
+    kprint("Mapping .text   (%p -> %p) %zu pages\n", (void*)phys, (void*)virt, len);
+    if(!page_mmap(pml4, phys, virt, len, KERNEL_PFLAG_PRESENT)) {
+        kpanic("Failed to map .text");
+    }
+    phys = page_align_down(addr_resp.phys + (((uintptr_t)section_const_data_begin) - addr_resp.virt));
+    virt = page_align_down((uintptr_t)section_const_data_begin);
+    len  = (page_align_up((uintptr_t)section_const_data_end) - page_align_down((uintptr_t)section_const_data_begin))/PAGE_SIZE;
+    kprint("Mapping .rodata (%p -> %p) %zu pages\n", (void*)phys, (void*)virt, len);
+    if(!page_mmap(pml4, phys, virt, len, KERNEL_PFLAG_PRESENT | KERNEL_PFLAG_EXEC_DISABLE)) {
+        kpanic("Failed to map .rodata");
+    }
+    phys = page_align_down(addr_resp.phys + (((uintptr_t)section_mut_data_begin) - addr_resp.virt));
+    virt = page_align_down((uintptr_t)section_mut_data_begin);
+    len = (page_align_up((uintptr_t)section_mut_data_end) - page_align_down((uintptr_t)section_mut_data_begin))/PAGE_SIZE;
+    kprint("Mapping .data   (%p -> %p) %zu pages\n", (void*)phys, (void*)virt, len);
+    if(!page_mmap(pml4, phys, virt, len, KERNEL_PFLAG_PRESENT | KERNEL_PFLAG_WRITE | KERNEL_PFLAG_EXEC_DISABLE)) {
+        kpanic("Failed to map .data");
+    }
+}
+
 // NOTE: Mapping the actual executable is left to exec. This simply needs to initialise stuff.
 status_t init_task_paging(page_t *new_pml4) {
     *new_pml4 = kernel_alloc_pages(1);
@@ -262,31 +288,7 @@ void init_paging() {
     if(!kernel.pml4) kpanic("ERROR: Could not allocate page map. Ran out of memory");
     memset(kernel.pml4, 0, PAGE_SIZE);
     map_all_memory(kernel.pml4, true);
-    uintptr_t phys, virt;
-    size_t len;
-    phys = page_align_down(addr_resp.phys + (((uintptr_t)section_text_begin) - addr_resp.virt));
-    virt = page_align_down((uintptr_t)section_text_begin);
-    len  = (page_align_up((uintptr_t)section_text_end) - page_align_down((uintptr_t)section_text_begin))/PAGE_SIZE;
-    kprint("Mapping .text   (%p -> %p) %zu pages\n", (void*)phys, (void*)virt, len);
-    if(!page_mmap(kernel.pml4, phys, virt, len, KERNEL_PFLAG_PRESENT)) {
-        kpanic("Failed to map .text");
-    }
-
-    phys = page_align_down(addr_resp.phys + (((uintptr_t)section_const_data_begin) - addr_resp.virt));
-    virt = page_align_down((uintptr_t)section_const_data_begin);
-    len  = (page_align_up((uintptr_t)section_const_data_end) - page_align_down((uintptr_t)section_const_data_begin))/PAGE_SIZE;
-    kprint("Mapping .rodata (%p -> %p) %zu pages\n", (void*)phys, (void*)virt, len);
-    if(!page_mmap(kernel.pml4, phys, virt, len, KERNEL_PFLAG_PRESENT | KERNEL_PFLAG_EXEC_DISABLE)) {
-        kpanic("Failed to map .rodata");
-    }
-
-    phys = page_align_down(addr_resp.phys + (((uintptr_t)section_mut_data_begin) - addr_resp.virt));
-    virt = page_align_down((uintptr_t)section_mut_data_begin);
-    len = (page_align_up((uintptr_t)section_mut_data_end) - page_align_down((uintptr_t)section_mut_data_begin))/PAGE_SIZE;
-    kprint("Mapping .data   (%p -> %p) %zu pages\n", (void*)phys, (void*)virt, len);
-    if(!page_mmap(kernel.pml4, phys, virt, len, KERNEL_PFLAG_PRESENT | KERNEL_PFLAG_WRITE | KERNEL_PFLAG_EXEC_DISABLE)) {
-        kpanic("Failed to map .data");
-    }
+    map_kernel(addr_resp, kernel.pml4);
     kprint("Allocating stack (%p) %zu pages\n", (void*)KERNEL_STACK_ADDR, (size_t)KERNEL_STACK_PAGES);
     if(!page_alloc(kernel.pml4, KERNEL_STACK_ADDR, KERNEL_STACK_PAGES, KERNEL_PFLAG_PRESENT | KERNEL_PFLAG_WRITE)) {
         kpanic("Failed to map/allocate the stack");
