@@ -21,6 +21,7 @@ void init_scheduler() {
 
 Task *task_add() {
     Task *new_task   = slab_alloc(kernel.scheduler.cache);
+    memset(new_task, 0, sizeof(Task));
     new_task->tid    = kernel.scheduler.tid_upto++;
     memset(new_task->resources, 0, sizeof(new_task->resources));
     list_insert(&new_task->list, &kernel.scheduler.tasklist);
