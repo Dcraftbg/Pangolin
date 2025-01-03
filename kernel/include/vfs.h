@@ -2,6 +2,7 @@
 #include <status.h>
 #include <fsdefs.h>
 #include <mem/slab.h>
+
 typedef struct Inode Inode;
 typedef struct InodeOps InodeOps;
 typedef struct Superblock Superblock;
@@ -37,7 +38,7 @@ struct InodeOps {
 };
 struct Inode {
     Superblock *superblock;
-    inodeid_t id;
+    ino_t id;
     inodekind_t kind;
     size_t shared;
     InodeOps *ops;
@@ -45,7 +46,7 @@ struct Inode {
 };
 struct DirEntry {
     Superblock *superblock;
-    inodeid_t id;
+    ino_t id;
     DirEntryOps *ops;
     void *priv;
 };
@@ -56,12 +57,12 @@ struct DirEntryOps {
 struct Superblock {
     FileSystem *filesystem;
     SuperblockOps *ops;
-    inodeid_t root;
+    ino_t root;
     void *priv;
 };
 struct SuperblockOps {
     status_t (*unmount)(Superblock* superblock);
-    status_t (*get_inode)(Superblock* superblock, inodeid_t id, Inode** inode);
+    status_t (*get_inode)(Superblock* superblock, ino_t id, Inode** inode);
 };
 struct FileSystem {
     status_t (*init)(FileSystem* fs);
@@ -97,7 +98,7 @@ status_t inode_cleanup(Inode* inode);
 
 // Superblock wrappers
 status_t sb_unmount(Superblock* superblock);
-status_t sb_get_inode(Superblock* superblock, inodeid_t id, Inode** inode);
+status_t sb_get_inode(Superblock* superblock, ino_t id, Inode** inode);
 
 // DirEntry wrappers
 status_t direntry_identify(DirEntry* entry, char* name, size_t namecap);
@@ -105,7 +106,7 @@ status_t direntry_cleanup(DirEntry* entry);
 
 
 
-static inline Inode* inode_new(Superblock* superblock, inodeid_t id, inodekind_t kind, InodeOps* ops, void *priv) {
+static inline Inode* inode_new(Superblock* superblock, ino_t id, inodekind_t kind, InodeOps* ops, void *priv) {
     Inode* me = slab_alloc(inode_cache);
     if(!me) return NULL;
     me->superblock = superblock;
@@ -131,15 +132,15 @@ status_t init_vfs();
 struct Path {
     struct {
         Superblock* superblock;
-        inodeid_t inode;
+        ino_t inode;
     } from;
     const char* path;
 };
 
-status_t vfs_find_parent(Path* path, inodeid_t* id, Superblock** sb, const char** rest);
+status_t vfs_find_parent(Path* path, ino_t* id, Superblock** sb, const char** rest);
 static status_t vfs_find_parent_inode(Path* path, Inode** inode, const char** rest) {
     status_t e;
-    inodeid_t parent_id;
+    ino_t parent_id;
     Superblock* parent_sb;
     if((e=vfs_find_parent(path, &parent_id, &parent_sb, rest)) < 0) {
         return e;
@@ -149,7 +150,7 @@ static status_t vfs_find_parent_inode(Path* path, Inode** inode, const char** re
     }
     return 0;
 }
-status_t vfs_find(Path* path, inodeid_t* id, Superblock** sb);
+status_t vfs_find(Path* path, ino_t* id, Superblock** sb);
 status_t vfs_open(Path* path, Inode** inode);
 status_t vfs_create(Path* path);
 status_t vfs_mkdir(Path* path);

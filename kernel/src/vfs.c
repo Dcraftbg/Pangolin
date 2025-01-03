@@ -57,7 +57,7 @@ status_t sb_unmount(Superblock* superblock) {
     if(!superblock->ops->unmount) return -UNSUPPORTED;
     return superblock->ops->unmount(superblock);
 }
-status_t sb_get_inode(Superblock* superblock, inodeid_t id, Inode** inode) {
+status_t sb_get_inode(Superblock* superblock, ino_t id, Inode** inode) {
     if(!superblock->ops->get_inode) return -UNSUPPORTED;
     return superblock->ops->get_inode(superblock, id, inode);
 }
@@ -73,7 +73,7 @@ status_t direntry_cleanup(DirEntry* entry) {
 }
 
 
-status_t vfs_find_parent(Path* path, inodeid_t* id, Superblock** sb, const char** rest) {
+status_t vfs_find_parent(Path* path, ino_t* id, Superblock** sb, const char** rest) {
     status_t e;
     const char* p = path->path;
     const char* end = path_eat(p);
@@ -97,7 +97,7 @@ status_t vfs_find_parent(Path* path, inodeid_t* id, Superblock** sb, const char*
     *rest = p;
     return 0;
 }
-status_t vfs_find(Path* path, inodeid_t* id, Superblock** sb) {
+status_t vfs_find(Path* path, ino_t* id, Superblock** sb) {
     status_t e;
     Inode* dir;
     const char* filename;
@@ -122,7 +122,7 @@ status_t vfs_find(Path* path, inodeid_t* id, Superblock** sb) {
 }
 status_t vfs_open(Path* path, Inode** inode) {
     status_t e;
-    inodeid_t id;
+    ino_t id;
     Superblock* sb;
     if((e=vfs_find(path, &id, &sb)) < 0) {
         return e;

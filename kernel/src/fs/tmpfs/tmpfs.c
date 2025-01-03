@@ -83,7 +83,7 @@ static DirEntryOps tmpfs_direntry_ops = {
 };
 static void dentry_from_tmpfs(DirEntry* entry, TmpfsDirEntry* tmpfs_entry, Superblock* superblock) {
     entry->superblock = superblock;
-    entry->id         = (inodeid_t)tmpfs_entry->inode;
+    entry->id         = (ino_t)tmpfs_entry->inode;
     entry->ops        = &tmpfs_direntry_ops;
     entry->priv       = tmpfs_entry;
 }
@@ -275,7 +275,7 @@ static status_t tmpfs_unmount(Superblock* superblock) {
     // TODO: deallocate all memory of tmpfs from superblock->root
     return 0;
 }
-static status_t tmpfs_get_inode(Superblock* superblock, inodeid_t id, Inode** inode) {
+static status_t tmpfs_get_inode(Superblock* superblock, ino_t id, Inode** inode) {
     TmpfsInode* tmp_inode = (TmpfsInode*)id;
     *inode = inode_new(superblock, id, tmp_inode->kind, &tmpfs_inode_ops, tmp_inode);
     return 0;
@@ -290,7 +290,7 @@ static status_t tmpfs_mount(FileSystem* fs, Superblock* superblock, Inode* file)
     (void)fs;
     if(file) return -INVALID_PARAM;
     TmpfsInode* root = directory_new();
-    superblock->root = (inodeid_t)root;
+    superblock->root = (ino_t)root;
     superblock->priv = root;
     superblock->ops  = &tmpfs_superblock_ops;
     return 0;
